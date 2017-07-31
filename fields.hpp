@@ -1,5 +1,6 @@
 #pragma once
 
+#include "function_traits.hpp"
 #include "operators.hpp"
 
 #include <functional>
@@ -108,14 +109,19 @@ auto d_dx(const F&& f) {
 			};
 }
 
-template <typename T,
-		  typename Hamiltonian,
+template <typename Hamiltonian,
 		  typename Psi,
 		  typename Real>
 auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 	using namespace operators;
-	
-	auto psi = FieldList<T>{};
+
+	using traits = util::function_traits<std::decay_t<Psi>>;
+
+	using Ret = traits::result_type;
+
+	using Arg = traits::arg<0>::type;
+
+	auto psi = FieldList<Ret(Arg)>{};
 
 	const auto dt = Real{ 0.01 };
 	const auto dt_2 = Real{ 0.5*dt };
