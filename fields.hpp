@@ -1,5 +1,6 @@
 #pragma once
 
+#include "function_traits.hpp"
 #include "operators.hpp"
 
 #include <functional>
@@ -9,11 +10,6 @@
 #include <unordered_map>
 
 namespace fields {
-
-template <typename T>
-auto capture(T&& t) -> decltype(auto) {
-	return captured<T>{std::forward<T>(t)};
-}
 
 template <typename T>
 class Field {
@@ -96,26 +92,16 @@ class FieldList {
 	 std::list<std::shared_ptr<Field<T>>> field_;
 };
 
-
-template <typename F>
-auto d_dx(const F&& f) {
-	return	[&f] (auto x) {
-				using R = decltype(x);
-				constexpr static auto dx = R{0.0001};
-				constexpr static auto half_dx_1 = R{ 0.5 } / dx;
-
-				return (f(x + dx) - f(x - dx))*half_dx_1;
-			};
-}
-
-template <typename T,
-		  typename Hamiltonian,
+template <typename Hamiltonian,
 		  typename Psi,
 		  typename Real>
 auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 	using namespace operators;
 	
-	auto psi = FieldList<T>{};
+	using R = utils::function_traits<std::decay_t<Psi>>::result_type;
+	using Arg = utils::function_traits<std::decay_t<Psi>>::arg<0>::type;
+
+	auto psi = FieldList<R(Arg)>{};
 
 	const auto dt = Real{ 0.01 };
 	const auto dt_2 = Real{ 0.5*dt };
