@@ -4,6 +4,7 @@
 #include "derivative.hpp"
 #include "multiply.hpp"
 #include "multiply_scalar.hpp"
+#include "shared_field.hpp"
 
 #include <cassert>
 #include <memory>
@@ -12,12 +13,12 @@ namespace fields {
 namespace operators {
 
 template <typename F, typename G>
-auto operator*(std::shared_ptr<F> f, std::shared_ptr<G> g) {
+auto operator*(SharedField<F> f, SharedField<G> g) {
 	return Multiply<F, G>(std::move(f), std::move(g));
 }
 template <typename F, typename G>
 auto operator*(F&& f, G&& g) {
-	return std::make_shared<F>(std::forward<F>(f)) * std::make_shared<G>(std::forward<G>(g));
+	return SharedField<F>(std::forward<F>(f)) * SharedField<G>(std::forward<G>(g));
 }
 
 /*template <typename F>
@@ -41,12 +42,12 @@ auto operator*(double k, MultiplyScalar<F> f) {
 }
 
 template <typename F>
-auto operator*(std::shared_ptr<F> f, double k) {
+auto operator*(SharedField<F> f, double k) {
 	return MultiplyScalar<F>(std::move(f), k);
 }
 
 template <typename F>
-auto operator*(double k, std::shared_ptr<F> f) {
+auto operator*(double k, SharedField<F> f) {
 	return std::move(f)*k;
 }
 
@@ -61,17 +62,17 @@ auto operator*(double k, F&& f) {
 }
 
 template <typename F, typename G>
-auto operator+(std::shared_ptr<F> f, G&& g) {
-	return Addition<F, std::decay_t<G>>(std::move(f), std::forward<G>(g));
+auto operator+(SharedField<F> f, G&& g) {
+	return Addition<F, G>(std::move(f), std::forward<G>(g));
 }
 
 template <typename F, typename G>
-auto operator+(std::shared_ptr<F> f, MultiplyScalar<G> g) {
+auto operator+(SharedField<F> f, MultiplyScalar<G> g) {
 	return Addition<F, MultiplyScalar<G>>(std::move(f), std::move(g));
 }
 
 template <typename F>
-auto operator+(std::shared_ptr<F> f, MultiplyScalar<F> g) {
+auto operator+(SharedField<F> f, MultiplyScalar<F> g) {
 	
 	assert(f.get() == &g.lhs());		// assume that objects of the same type are the same. not valid for cases like:		std::sin + 5*std::cos
 
@@ -83,11 +84,11 @@ auto operator+(std::shared_ptr<F> f, MultiplyScalar<F> g) {
 
 template <typename F, typename G>
 auto operator+(F&& f, G&& g) {
-	return std::make_shared<std::decay_t<F>>(std::forward<F>(f)) + std::make_shared<std::decay_t<G>>(std::forward<G>(g));
+	return SharedField<F>(std::forward<F>(f)) + SharedField<G>(std::forward<G>(g));
 }
 
 template <typename F, typename G>
-auto operator+(std::shared_ptr<F> f, std::shared_ptr<G> g) {
+auto operator+(SharedField<F> f, SharedField<G> g) {
 	return Addition<F, G>(std::move(f), std::move(g));
 }
 

@@ -32,7 +32,7 @@ public:
 template <typename F>
 class Multiply<F, F> : public MultiplyBase<F, F> {
 public:
-	Multiply(std::shared_ptr<F> f, std::shared_ptr<F> g) : MultiplyBase<F, F>(std::move(f), std::move(g)) {
+	Multiply(SharedField<F> f, SharedField<F> g) : MultiplyBase<F, F>(std::move(f), std::move(g)) {
 	}
 
 	template <typename T>

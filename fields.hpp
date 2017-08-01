@@ -66,7 +66,7 @@ class FieldList {
 	 template <typename... Args>
 	 auto operator()(Args&&... args) const {
 		 // std::cout << __FUNCTION__ << "\ttotal Field objects: " << field_.size() << std::endl;
-		 return (*front())(std::forward<Args>(args)...);
+		 return front().func()(std::forward<Args>(args)...);
 	 }
 
 	 auto front() const -> decltype(auto) {
@@ -76,11 +76,14 @@ class FieldList {
 	 template <typename... Args>
 	 auto emplace_front(Args&&... args) {
 		 // std::cout << __FUNCTION__ << std::endl;
-		 field_.emplace_front(std::make_shared<Field<T>>(std::forward<Args>(args)...));
+		 field_.emplace_front(SharedField<Field<T>>(std::forward<Args>(args)...));
 	 }
 
  private:
-	 std::list<std::shared_ptr<Field<T>>> field_;
+	 template <typename G>
+	 using SharedField = operators::SharedField<G>;
+
+	 std::list<SharedField<Field<T>>> field_;
 };
 
 template <typename Hamiltonian,
@@ -107,7 +110,7 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 
 	auto H = [&H_] (auto&& psi, double t) {
 		using F = decltype(psi);
-		return H_(std::make_shared<std::decay_t<F>>(std::forward<F>(psi)), t);
+		return H_(SharedField<F>(std::forward<F>(psi)), t);
 	};
 
 	psi.emplace_front(std::forward<Psi>(psi_init));
@@ -117,7 +120,7 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 	
 		static_assert(std::is_lvalue_reference_v<decltype(psi_0)>, "Psi is NOT an lvalue reference!");
 
-		static_assert(std::is_reference_v<decltype(H_(psi_0, t))> == false, "H(psi) returns reference when it should always create a new object!");
+		static_assert(std::is_reference_v<decltype(H(psi_0, t))> == false, "H(psi) returns reference when it should always create a new object!");
 		static_assert(std::is_reference_v<decltype(H_(psi_0, t)*dt)> == false, "H(psi)*dt returns reference when it should always create a new object!");
 		static_assert(std::is_reference_v<decltype(psi_0 + H_(psi_0, t)*dt)> == false, "psi + H(psi)*dt returns reference when it should always create a new object!");
 
