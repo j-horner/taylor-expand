@@ -12,11 +12,6 @@
 namespace fields {
 
 template <typename T>
-auto capture(T&& t) -> decltype(auto) {
-	return captured<T>{std::forward<T>(t)};
-}
-
-template <typename T>
 class Field {
  public:
 	 template <typename F>
@@ -27,15 +22,6 @@ class Field {
 
 	template <typename X>
 	auto operator()(X&& x) const {
-		// std::cout << "Field operator()\n" << std::endl;
-		/*if (nullptr == this) {
-			std::cout << "Null pointer detected!\t" << __FUNCTION__ << std::endl;
-			// throw std::runtime_error("Nullptr detected for Field!");
-		}
-		else {
-			++called_;
-			// std::cout << __FUNCTION__ << "\t" << id_ << "\t" << called_ << "\t" << x << std::endl;
-		}*/
 		++called_;
 		 
 		const auto idx = static_cast<int>(x*dx_1);
@@ -96,18 +82,6 @@ class FieldList {
  private:
 	 std::list<std::shared_ptr<Field<T>>> field_;
 };
-
-
-template <typename F>
-auto d_dx(const F&& f) {
-	return	[&f] (auto x) {
-				using R = decltype(x);
-				constexpr static auto dx = R{0.0001};
-				constexpr static auto half_dx_1 = R{ 0.5 } / dx;
-
-				return (f(x + dx) - f(x - dx))*half_dx_1;
-			};
-}
 
 template <typename Hamiltonian,
 		  typename Psi,

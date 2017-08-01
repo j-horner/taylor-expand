@@ -28,3 +28,4 @@ struct function_traits<ReturnType(ClassType::*)(Args...) const> {
 
 }	// util
 }	// fields
+

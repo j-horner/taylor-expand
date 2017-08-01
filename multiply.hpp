@@ -17,7 +17,7 @@ public:
 
 	template <typename T>
 	auto operator()(T x) {
-		return (*f_)(x)*(*g_)(x);
+		return lhs()(x)*rhs()(x);
 	}
 };
 
@@ -37,8 +37,8 @@ public:
 
 	template <typename T>
 	auto operator() (T x) {
-		if (f_.get() == g_.get()) {
-			auto val = (*f_)(x);		// underlying functions are the same, call once then square
+		if (&lhs() == &rhs()) {
+			auto val = lhs()(x);		// underlying functions are the same, call once then square
 			return val*val;
 		} else {
 			return MultiplyBase<F, F>::operator()(x);	// otherwise call default f*g

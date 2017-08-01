@@ -17,6 +17,8 @@ auto main() -> int {
 		using namespace fields::operators;
 
 		return psi*psi;
+
+		// return d_dx(psi);
 	};
 
 	std::cout << "psi_0:\t" << psi_0(0.0) << std::endl;
@@ -28,7 +30,10 @@ auto main() -> int {
 		std::cout << "t: " << t << "\tpsi:\t" << psi(0.0) << "\t" << psi_0(0.0) / (1.0 - t*psi_0(0.0)) << std::endl;
 	}
 
-	/*for (auto x = -1.0; x < 1.0; x += 0.1) {
+	/*auto t = 0.2;
+	auto psi = integrate(H, psi_0, 0.0, t);
+
+	for (auto x = -1.0; x < 1.0; x += 0.1) {
 		std::cout << "psi(" << x << ")\t= " << psi_0(x) << "\t--->\t" << psi(x) << "\t" << psi_0(x) / (1.0 - psi_0(x)) << std::endl;
 	}*/
 		

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "addition.hpp"
+#include "derivative.hpp"
 #include "multiply.hpp"
 #include "multiply_scalar.hpp"
 

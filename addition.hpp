@@ -17,7 +17,7 @@ public:
 	template <typename T>
 	auto operator() (T x) {
 		// std::cout << "Addition operator()\n" << std::endl;	
-		return (*f_)(x) + (*g_)(x);
+		return lhs()(x) + rhs()(x);
 	}
 
 };
