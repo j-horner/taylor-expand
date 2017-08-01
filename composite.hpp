@@ -8,8 +8,10 @@ namespace operators {
 template <typename F, typename G>
 class Composite {
 public:
-	template <typename Lhs, typename Rhs>
-	Composite(Lhs&& f, Rhs&& g) : f_(std::forward<Lhs>(f)), g_(std::forward<Rhs>(g)) {
+	Composite(F&& f, G&& g) : f_(std::forward<F>(f)), g_(std::forward<G>(g)) {
+	}
+
+	Composite(SharedField<F>&& f, SharedField<G>&& g) : f_(std::move(f)), g_(std::move(g)) {
 	}
 
 	auto lhs() const -> decltype(auto) { return f_.func(); }

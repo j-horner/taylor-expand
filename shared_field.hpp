@@ -9,8 +9,7 @@ namespace operators {
 template <typename F>
 class SharedField {
 public:
-	template <typename G>
-	SharedField(G&& g) : f_(std::make_shared<std::decay_t<F>>(std::forward<G>(g))) {
+	SharedField(F&& f) : f_(std::make_shared<std::decay_t<F>>(std::forward<F>(f))) {
 	}
 
 	auto func() const -> decltype(auto) { return *f_; }

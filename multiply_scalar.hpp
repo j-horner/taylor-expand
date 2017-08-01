@@ -11,8 +11,7 @@ namespace operators {
 template <typename F>
 class MultiplyScalar : public SharedField<F> {
 public:
-	template <typename G>
-	MultiplyScalar(G&& f, double k) : SharedField<F>(std::forward<G>(f)), k_(k) {
+	MultiplyScalar(F&& f, double k) : SharedField<F>(std::forward<F>(f)), k_(k) {
 	}
 
 	/*MultiplyScalar(std::shared_ptr<F> f, double k) : f_(std::move(f)), k_(k) {

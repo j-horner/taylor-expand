@@ -10,8 +10,7 @@ namespace operators {
 template <typename F, typename G>
 class Addition : public Composite<F, G> {
 public:
-	template <typename Lhs, typename Rhs>
-	Addition(Lhs&& lhs, Rhs&& rhs) : Composite<F, G>(std::forward<Lhs>(lhs), std::forward<Rhs>(rhs)) {
+	Addition(F&& lhs, G&& rhs) : Composite<F, G>(std::forward<F>(lhs), std::forward<G>(rhs)) {
 	}
 
 	template <typename T>

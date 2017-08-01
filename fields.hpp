@@ -16,7 +16,6 @@ class Field {
  public:
 	 template <typename F>
 	 Field(F&& f) : f_(std::forward<F>(f)), id_(count_) {
-		 // std::cout << "New field!\t" << id_ << std::endl;
 		 ++count_;
 	 }
 
@@ -121,8 +120,8 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 		static_assert(std::is_lvalue_reference_v<decltype(psi_0)>, "Psi is NOT an lvalue reference!");
 
 		static_assert(std::is_reference_v<decltype(H(psi_0, t))> == false, "H(psi) returns reference when it should always create a new object!");
-		static_assert(std::is_reference_v<decltype(H_(psi_0, t)*dt)> == false, "H(psi)*dt returns reference when it should always create a new object!");
-		static_assert(std::is_reference_v<decltype(psi_0 + H_(psi_0, t)*dt)> == false, "psi + H(psi)*dt returns reference when it should always create a new object!");
+		// static_assert(std::is_reference_v<decltype(H(psi_0, t)*dt)> == false, "H(psi)*dt returns reference when it should always create a new object!");
+		// static_assert(std::is_reference_v<decltype(psi_0 + H_(psi_0, t)*dt)> == false, "psi + H(psi)*dt returns reference when it should always create a new object!");
 
 		// static_assert(std::is_same_v<decltype(psi_0 + psi_0*dt), decltype(psi_0*dt)>, "{psi + psi*dt} and {psi*dt} are NOT the same type!");
 
@@ -131,15 +130,15 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 
 		// euler
 		// auto psi_1 = psi_0 + H(psi_0, t)*dt;
+		auto psi_1 = H(psi_0, t);
 
-		
 		// RK2	
 		// auto K1 = H_(psi_0, t)*dt;	
 		
 		// auto psi_1 = psi_0 + H(psi_0 + 0.5*K1, t + 0.5*dt)*dt;
 		
 		// RK4
-		auto K1 = H_(psi_0, t)*dt;
+		/*auto K1 = H_(psi_0, t)*dt;
 
 		auto K2 = H(psi_0 + 0.5*K1, t + 0.5*dt)*dt;
 
@@ -147,7 +146,7 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 
 		auto K4 = H(psi_0 + K3, t + dt)*dt;
 
-		auto psi_1 = psi_0 + ((K1 + 2.0*K2) + (2.0*K3 + K4))*sixth;
+		auto psi_1 = psi_0 + ((K1 + 2.0*K2) + (2.0*K3 + K4))*sixth;*/
 
 
 		psi.emplace_front(std::move(psi_1));

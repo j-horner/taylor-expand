@@ -16,6 +16,7 @@ auto main() -> int {
 		// std::cout << "----- Calling H -----" << std::endl;
 		using namespace fields::operators;
 
+		// return psi;
 		return psi*psi;
 
 		// return d_dx(psi);

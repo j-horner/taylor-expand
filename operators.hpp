@@ -79,7 +79,7 @@ auto operator+(SharedField<F> f, MultiplyScalar<F> g) {
 	// std::cout << "Merging addition and multiplication:\t" << 1.0 << "\t" << g.rhs() << "--->\t" << (1.0 + g.rhs()) << std::endl;
 
 	// can "get away" with just adding the scalars here
-	return std::move(f)*(1.0 + g.rhs());
+	return std::move(f)*(1.0 + g.scalar());
 }
 
 template <typename F, typename G>
