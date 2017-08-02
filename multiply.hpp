@@ -11,10 +11,8 @@ class MultiplyScalar;
 template <typename F, typename G>
 class MultiplyBase : public Composite<F, G> {
 public:
-	MultiplyBase(F&& lhs, G&& rhs) : Composite<F, G>(std::forward<F>(lhs), std::forward<G>(rhs)) {
-	}
-
-	MultiplyBase(SharedField<F>&& f, SharedField<G>&& g) : Composite<F, G>(std::move(f), std::move(g)) {
+	template <typename Lhs, typename Rhs>
+	MultiplyBase(Lhs&& l, Rhs&& r) : Composite<F, G>(std::forward<Lhs>(l), std::forward<Rhs>(r)) {
 	}
 
 	template <typename T>
@@ -26,14 +24,12 @@ public:
 template <typename F, typename G>
 class Multiply : public MultiplyBase<F, G> {
 public:
-	Multiply(F&& lhs, G&& rhs) : MultiplyBase<F, G>(std::forward<F>(lhs), std::forward<G>(rhs)) {
-	}
-
-	Multiply(SharedField<F>&& f, SharedField<G>&& g) : MultiplyBase<F, G>(std::move(f), std::move(g)) {
+	template <typename Lhs, typename Rhs>
+	Multiply(Lhs&& l, Rhs&& r) : MultiplyBase<F, G>(std::forward<Lhs>(l), std::forward<Rhs>(r)) {
 	}
 };
 
-/*template <typename F>
+template <typename F>
 class Multiply<F, F> : public MultiplyBase<F, F> {
 public:
 	Multiply(SharedField<F> f, SharedField<F> g) : MultiplyBase<F, F>(std::move(f), std::move(g)) {
@@ -42,14 +38,13 @@ public:
 	template <typename T>
 	auto operator() (T x) {
 		if (&lhs() == &rhs()) {
-			const auto& f = lhs();
-			auto val = f(x);		// underlying functions are the same, call once then square
+			auto val = lhs()(x);		// underlying functions are the same, call once then square
 			return val*val;
 		} else {
 			return MultiplyBase<F, F>::operator()(x);	// otherwise call default f*g
 		}
 	}
-};*/
+};
 
 
 }	// operators

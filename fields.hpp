@@ -15,24 +15,18 @@ template <typename T>
 class Field {
  public:
 	 template <typename F>
-	 Field(F&& f) : f_(std::forward<F>(f)), id_(count_) {
-		 ++count_;
+	 Field(F&& f) : f_(std::forward<F>(f)) {
 	 }
 
 	template <typename X>
-	auto operator()(X&& x) const {
-		++called_;
-		 
+	auto operator()(X&& x) const {	 
 		const auto idx = static_cast<int>(x*dx_1);
 
 		const auto location = memory_.find(idx);
 
 		if (memory_.end() != location) {
-			// std::cout << "Found result, returning...\t" << id_ << "\t" << called_ << "\t" << x << "\t" << idx << std::endl;
 			return location->second;
-		} else {
-			// std::cout << "Not found, adding result to memory\t" << id_ << "\t" << called_ << "\t" << x << "\t" << idx << std::endl;
-			
+		} else {		
 			const auto val = f_(std::forward<X>(x));
 
 			memory_.emplace(idx, val);
@@ -42,29 +36,19 @@ class Field {
 	 }
 
  private:
-	// using Result = std::function<T>::result_type;
-
 	std::function<T> f_;
-
-	int id_ = 0;
 	
-	mutable int called_ = 0;
 	mutable std::unordered_map<int, double> memory_;
-
-	static int count_;
 
 	constexpr static auto dx_1 = 1.0e6;		// inverse of the dynamic lattice resolution
 };
 
-template <typename T>
-int Field<T>::count_ = 0;
 
 template <typename T>
 class FieldList {
  public:
 	 template <typename... Args>
 	 auto operator()(Args&&... args) const {
-		 // std::cout << __FUNCTION__ << "\ttotal Field objects: " << field_.size() << std::endl;
 		 return front().func()(std::forward<Args>(args)...);
 	 }
 
@@ -74,7 +58,6 @@ class FieldList {
 
 	 template <typename... Args>
 	 auto emplace_front(Args&&... args) {
-		 // std::cout << __FUNCTION__ << std::endl;
 		 field_.emplace_front(SharedField<Field<T>>(std::forward<Args>(args)...));
 	 }
 
@@ -103,12 +86,9 @@ template <typename Hamiltonian,
 		  typename Psi,
 		  typename Real>
 auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
-	using namespace operators;
-
 	using traits = util::function_traits<std::decay_t<Psi>>;
 
 	using Ret = traits::result_type;
-
 	using Arg = traits::arg<0>::type;
 
 	auto psi = FieldList<Ret(Arg)>{};
@@ -119,17 +99,15 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 
 	auto t = t_0;
 
-	auto count = 0;
-
 	auto H = [&H_] (auto&& psi, double t) {
 		return H_(wrap_function(std::forward<decltype(psi)>(psi)), t);
-		// using F = decltype(psi);
-		// return H_(SharedField<F>(std::forward<F>(psi)), t);
 	};
 
 	psi.emplace_front(std::forward<Psi>(psi_init));
 
 	while (t < t_f) {
+		using namespace operators;
+		
 		const auto& psi_0 = psi.front();
 	
 		static_assert(std::is_lvalue_reference_v<decltype(psi_0)>, "Psi is NOT an lvalue reference!");
@@ -141,40 +119,25 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 		static_assert(std::is_same_v<decltype(psi_0 + psi_0*dt), decltype(psi_0*dt)>, "{psi + psi*dt} and {psi*dt} are NOT the same type!");
 
 
-		// std::cout << "Constructed next function." << std::endl;
-
 		// euler
 		// auto psi_1 = psi_0 + H_(psi_0, t)*dt;
 
 		// RK2	
-		// auto K1 = H_(psi_0, t)*dt;	
-		
-		// auto psi_1 = psi_0 + H(psi_0 + 0.5*K1, t + 0.5*dt)*dt;
+		// auto K1		= H_(psi_0, t)*dt;	
+
+		// auto psi_1	= psi_0 + H(psi_0 + 0.5*K1, t + 0.5*dt)*dt;
 		
 		// RK4
 		auto K1 = H(psi_0, t)*dt;
-
 		auto K2 = H(psi_0 + 0.5*K1, t + 0.5*dt)*dt;
-
 		auto K3 = H(psi_0 + 0.5*K2, t + 0.5*dt)*dt;
-
 		auto K4 = H(psi_0 + K3, t + dt)*dt;
 
 		auto psi_1 = psi_0 + (K1 + 2.0*K2 + 2.0*K3 + K4)*sixth;
 
-
 		psi.emplace_front(std::move(psi_1));
 		
-
-		// std::cout << "Function moved into list" << std::endl;
-
-		// std::cout << t << "\t----------" << std::endl;
-
 		t += dt;
-
-		++count;
-
-		// if (count > 0) break;
 	}
 
 	return psi;
