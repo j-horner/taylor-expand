@@ -74,7 +74,7 @@ auto operator+(SharedField<F> f, MultiplyScalar<G> g) {
 template <typename F>
 auto operator+(SharedField<F> f, MultiplyScalar<F> g) {
 	
-	assert(f.get() == &g.lhs());		// assume that objects of the same type are the same. not valid for cases like:		std::sin + 5*std::cos
+	assert(&f.func() == &g.func());		// assume that objects of the same type are the same. not valid for cases like:		std::sin + 5*std::cos
 
 	// std::cout << "Merging addition and multiplication:\t" << 1.0 << "\t" << g.rhs() << "--->\t" << (1.0 + g.rhs()) << std::endl;
 
