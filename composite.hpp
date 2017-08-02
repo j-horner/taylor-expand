@@ -11,6 +11,12 @@ public:
 	Composite(F&& f, G&& g) : f_(std::forward<F>(f)), g_(std::forward<G>(g)) {
 	}
 
+	Composite(SharedField<F>&& f, G&& g) : f_(std::move(f)), g_(std::forward<G>(g)) {
+	}
+
+	Composite(F&& f, SharedField<G>&& g) : f_(std::forward<F>(f)), g_(std::move(g)) {
+	}
+
 	Composite(SharedField<F>&& f, SharedField<G>&& g) : f_(std::move(f)), g_(std::move(g)) {
 	}
 

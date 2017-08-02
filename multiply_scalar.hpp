@@ -14,8 +14,8 @@ public:
 	MultiplyScalar(F&& f, double k) : SharedField<F>(std::forward<F>(f)), k_(k) {
 	}
 
-	/*MultiplyScalar(std::shared_ptr<F> f, double k) : f_(std::move(f)), k_(k) {
-	}*/
+	MultiplyScalar(SharedField<F> f, double k) : SharedField<F>(std::move(f)), k_(k) {
+	}
 
 	MultiplyScalar(MultiplyScalar&& old, double k) : SharedField<F>(std::move(old.f_)), k_(k*old.k_) {
 		// std::cout << "Merged two scalar multiplications:\t" << old.k_ << "\t" << k << "--->\t" << k_ << std::endl;

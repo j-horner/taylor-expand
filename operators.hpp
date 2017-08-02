@@ -16,10 +16,10 @@ template <typename F, typename G>
 auto operator*(SharedField<F> f, SharedField<G> g) {
 	return Multiply<F, G>(std::move(f), std::move(g));
 }
-template <typename F, typename G>
+/*template <typename F, typename G>
 auto operator*(F&& f, G&& g) {
 	return SharedField<F>(std::forward<F>(f)) * SharedField<G>(std::forward<G>(g));
-}
+}*/
 
 /*template <typename F>
 auto operator*(MultiplyScalar<F>&& f, double k) {

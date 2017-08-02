@@ -85,6 +85,20 @@ class FieldList {
 	 std::list<SharedField<Field<T>>> field_;
 };
 
+namespace {
+using namespace operators;
+
+template <typename F>
+auto wrap_function(F&& f) {
+	return SharedField<F>(std::forward<F>(f));
+}
+
+template <typename F>
+auto wrap_function(SharedField<F> f) {
+	return f;
+}
+}
+
 template <typename Hamiltonian,
 		  typename Psi,
 		  typename Real>
@@ -108,8 +122,9 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 	auto count = 0;
 
 	auto H = [&H_] (auto&& psi, double t) {
-		using F = decltype(psi);
-		return H_(SharedField<F>(std::forward<F>(psi)), t);
+		return H_(wrap_function(std::forward<decltype(psi)>(psi)), t);
+		// using F = decltype(psi);
+		// return H_(SharedField<F>(std::forward<F>(psi)), t);
 	};
 
 	psi.emplace_front(std::forward<Psi>(psi_init));
@@ -120,17 +135,16 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 		static_assert(std::is_lvalue_reference_v<decltype(psi_0)>, "Psi is NOT an lvalue reference!");
 
 		static_assert(std::is_reference_v<decltype(H(psi_0, t))> == false, "H(psi) returns reference when it should always create a new object!");
-		// static_assert(std::is_reference_v<decltype(H(psi_0, t)*dt)> == false, "H(psi)*dt returns reference when it should always create a new object!");
-		// static_assert(std::is_reference_v<decltype(psi_0 + H_(psi_0, t)*dt)> == false, "psi + H(psi)*dt returns reference when it should always create a new object!");
+		static_assert(std::is_reference_v<decltype(H(psi_0, t)*dt)> == false, "H(psi)*dt returns reference when it should always create a new object!");
+		static_assert(std::is_reference_v<decltype(psi_0 + H(psi_0, t)*dt)> == false, "psi + H(psi)*dt returns reference when it should always create a new object!");
 
-		// static_assert(std::is_same_v<decltype(psi_0 + psi_0*dt), decltype(psi_0*dt)>, "{psi + psi*dt} and {psi*dt} are NOT the same type!");
+		static_assert(std::is_same_v<decltype(psi_0 + psi_0*dt), decltype(psi_0*dt)>, "{psi + psi*dt} and {psi*dt} are NOT the same type!");
 
 
 		// std::cout << "Constructed next function." << std::endl;
 
 		// euler
-		// auto psi_1 = psi_0 + H(psi_0, t)*dt;
-		auto psi_1 = H(psi_0, t);
+		// auto psi_1 = psi_0 + H_(psi_0, t)*dt;
 
 		// RK2	
 		// auto K1 = H_(psi_0, t)*dt;	
@@ -138,7 +152,7 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 		// auto psi_1 = psi_0 + H(psi_0 + 0.5*K1, t + 0.5*dt)*dt;
 		
 		// RK4
-		/*auto K1 = H_(psi_0, t)*dt;
+		auto K1 = H(psi_0, t)*dt;
 
 		auto K2 = H(psi_0 + 0.5*K1, t + 0.5*dt)*dt;
 
@@ -146,7 +160,7 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 
 		auto K4 = H(psi_0 + K3, t + dt)*dt;
 
-		auto psi_1 = psi_0 + ((K1 + 2.0*K2) + (2.0*K3 + K4))*sixth;*/
+		auto psi_1 = psi_0 + (K1 + 2.0*K2 + 2.0*K3 + K4)*sixth;
 
 
 		psi.emplace_front(std::move(psi_1));
