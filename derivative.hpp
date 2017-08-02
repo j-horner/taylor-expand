@@ -5,7 +5,7 @@
 namespace fields {
 namespace operators {
 
-template <typename F>
+template <typename F, int N = 1>
 class Derivative : public SharedField<F> {
 public:
 	template <typename G>
@@ -14,7 +14,7 @@ public:
 
 	template <typename T>
 	auto operator()(T x) {
-		constexpr static auto dx = 0.005;
+		constexpr static auto dx = 0.05;
 		constexpr static auto dx_2 = 0.5 / dx;
 
 		auto& f = func();
@@ -33,6 +33,7 @@ template <typename F>
 auto d_dx(SharedField<F> f) {
 	return Derivative<F>(std::move(f));
 }
+
 
 }	// operators
 }	// fields
