@@ -3,6 +3,7 @@
 #include "function_traits.hpp"
 #include "operators.hpp"
 
+#include <array>
 #include <functional>
 #include <iostream>
 #include <list>
@@ -40,7 +41,7 @@ class Field {
 	
 	mutable std::unordered_map<int, double> memory_;
 
-	constexpr static auto dx_1 = 1.0e6;		// inverse of the dynamic lattice resolution
+	constexpr static auto dx_1 = 1.0e7;		// inverse of the dynamic lattice resolution
 };
 
 
@@ -105,6 +106,20 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 
 	psi.emplace_front(std::forward<Psi>(psi_init));
 
+
+	// RKCK coefficients	https://en.wikipedia.org/wiki/Cash%E2%80%93Karp_method
+	constexpr auto c = std::array<Real, 6>{0.0, 0.2, 0.3, 1.0, 7.0/8.0};
+
+	constexpr auto e = std::array<Real, 6>{	(37.0/378.0) - (2825.0/27648.0),
+											0.0,
+											(250.0/621.0) - (18575.0/48384.0),
+											(125.0/594.0) - (13525.0/55296.0),
+											-(277.0/14336.0),
+											(512.0/1771.0) - 0.25};
+
+
+
+
 	while (t < t_f) {
 		using namespace operators;
 		
@@ -134,6 +149,14 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 		auto K4 = H(psi_0 + K3, t + dt)*dt;
 
 		auto psi_1 = psi_0 + (K1 + 2.0*K2 + 2.0*K3 + K4)*sixth;
+
+		// RK5
+
+
+
+
+
+
 
 		psi.emplace_front(std::move(psi_1));
 		

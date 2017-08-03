@@ -41,23 +41,25 @@ auto main() -> int {
 
 	auto t = 1.0;
 
-	auto start = std::chrono::high_resolution_clock::now();
+	auto now = [] {return std::chrono::high_resolution_clock::now(); };
+
+	auto start = now();
 
 	auto psi = integrate(H, psi_0, 0.0, t);
 
-	auto end = std::chrono::high_resolution_clock::now();
+	auto end = now();
 
 	std::cout << "Time integration completed in: " << std::chrono::duration<double>(end - start).count() << "s" << std::endl;
 
-	for (auto x = -10.0; x <= 10.0; x += 0.1) {
-		auto eval_start = std::chrono::high_resolution_clock::now();
+	for (auto x = -50.0; x < 50.0; x += 0.1) {
+		auto eval_start = now();
 		
 		auto psi_x = psi(x);
 
-		auto eval_end = std::chrono::high_resolution_clock::now();
+		auto eval_end = now();
 
 		// std::cout << "psi(" << x << ")\t= " << psi_0(x) << "\t--->\t" << psi(x) << "\t" << psi_0(x) / (1.0 - psi_0(x)) << std::endl;
-		std::cout << "psi(" << x << ")\t= " << psi_0(x) << "\t--->\t" << psi_x << "\t" << psi_0(x)*std::exp(t) << "\t" << std::chrono::duration<double>(eval_end - eval_start).count() << "s" << std::endl;
+		std::cout << "psi(" << x << ")\t\t= " << psi_0(x) << "\t--->\t" << psi_x << "\t" << psi_0(x)*std::exp(t) << "\t" << std::chrono::duration<double>(eval_end - eval_start).count() << "s" << std::endl;
 	}
 	
 

@@ -22,7 +22,7 @@ public:
 		static_assert(util::binomial(N, 0) == 1, "Binomial(N, 0) is broken!");
 		static_assert(util::binomial(N, 1) == N, "Binomial(N, 1) is broken!");
 
-		// auto& f = func();
+		// auto& f = f_.func();
 		// return dx_2*(f(x + dx) - f(x - dx));
 	
 		constexpr auto factor = util::pow(dx_2, N);
@@ -74,6 +74,11 @@ auto d_dx(SharedField<F> f) {
 template <int N, typename F>
 auto d_dx(SharedField<F> f) {
 	return Derivative<F, N>(std::move(f));
+}
+
+template <typename F, int M>
+auto d_dx(Derivative<F, M> dydx) {
+	return d_dx<M + 1>(dydx.f());
 }
 
 template <int N, typename F, int M>
