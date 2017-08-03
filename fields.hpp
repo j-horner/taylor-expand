@@ -129,9 +129,6 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 		
 		// RK4
 		auto K1 = H(psi_0, t)*dt;
-
-		// int y = K1;
-
 		auto K2 = H(psi_0 + 0.5*K1, t + 0.5*dt)*dt;
 		auto K3 = H(psi_0 + 0.5*K2, t + 0.5*dt)*dt;
 		auto K4 = H(psi_0 + K3, t + dt)*dt;

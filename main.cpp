@@ -22,7 +22,9 @@ auto main() -> int {
 		// return psi;
 		// return psi*psi;
 
-		return d_dx(d_dx(psi));
+		// return d_dx(d_dx(psi));
+
+		return d_dx<2>(psi);
 	};
 
 	std::cout << "psi_0:\t" << psi_0(0.0) << std::endl;
@@ -50,12 +52,12 @@ auto main() -> int {
 	for (auto x = -10.0; x <= 10.0; x += 0.1) {
 		auto eval_start = std::chrono::high_resolution_clock::now();
 		
-		// std::cout << "psi(" << x << ")\t= " << psi_0(x) << "\t--->\t" << psi(x) << "\t" << psi_0(x) / (1.0 - psi_0(x)) << std::endl;
-		std::cout << "psi(" << x << ")\t= " << psi_0(x) << "\t--->\t" << psi(x) << "\t" << psi_0(x)*std::exp(t) << "\t";
+		auto psi_x = psi(x);
 
 		auto eval_end = std::chrono::high_resolution_clock::now();
 
-		std::cout << std::chrono::duration<double>(eval_end - eval_start).count() << "s" << std::endl;
+		// std::cout << "psi(" << x << ")\t= " << psi_0(x) << "\t--->\t" << psi(x) << "\t" << psi_0(x) / (1.0 - psi_0(x)) << std::endl;
+		std::cout << "psi(" << x << ")\t= " << psi_0(x) << "\t--->\t" << psi_x << "\t" << psi_0(x)*std::exp(t) << "\t" << std::chrono::duration<double>(eval_end - eval_start).count() << "s" << std::endl;
 	}
 	
 

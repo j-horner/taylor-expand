@@ -15,8 +15,8 @@ public:
 	auto lhs() const -> decltype(auto) { return f_.func(); }
 	auto rhs() const -> decltype(auto) { return g_.func(); }
 
-	auto f() const { return f_.get(); }
-	auto g() const { return g_.get(); }
+	auto f() const { return f_; }
+	auto g() const { return g_; }
 
 protected:
 	SharedField<F> f_;
