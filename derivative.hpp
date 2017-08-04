@@ -51,7 +51,7 @@ private:
 
 	SharedField<F> f_;
 
-	constexpr static auto dx = 0.05;
+	constexpr static auto dx = 0.1;
 	constexpr static auto dx_2 = 0.5 / dx;
 };
 

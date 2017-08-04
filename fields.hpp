@@ -94,7 +94,7 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 
 	auto psi = FieldList<Ret(Arg)>{};
 
-	const auto dt = Real{ 0.0025 };
+	const auto dt = Real{ 0.025 };
 	const auto dt_2 = Real{ 0.5*dt };
 	constexpr auto sixth = Real{ 1.0 / 6.0 };
 
@@ -110,13 +110,20 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 	// RKCK coefficients	https://en.wikipedia.org/wiki/Cash%E2%80%93Karp_method
 	constexpr auto c = std::array<Real, 6>{0.0, 0.2, 0.3, 1.0, 7.0/8.0};
 
-	constexpr auto e = std::array<Real, 6>{	(37.0/378.0) - (2825.0/27648.0),
-											0.0,
-											(250.0/621.0) - (18575.0/48384.0),
-											(125.0/594.0) - (13525.0/55296.0),
-											-(277.0/14336.0),
-											(512.0/1771.0) - 0.25};
+	constexpr auto b = std::array<Real, 6>{(37.0 / 378.0), 0.0, (250.0 / 621.0), (125.0 / 594.0), 0.0, (512.0 / 1771.0)};
 
+	constexpr auto e = std::array<Real, 6>{	std::get<0>(b) - (2825.0/27648.0),
+											std::get<1>(b) - 0.0,
+											std::get<2>(b) - (18575.0/48384.0),
+											std::get<3>(b) - (13525.0/55296.0),
+											std::get<4>(b) -(277.0/14336.0),
+											std::get<5>(b) - 0.25};
+	
+	constexpr auto a = std::array<std::array<Real, 5>, 5> { std::array<Real, 5>{0.2, 0.0, 0.0, 0.0, 0.0},
+															std::array<Real, 5>{ (3.0 / 40.0), (9.0 / 40.0), 0.0, 0.0, 0.0 },
+															std::array<Real, 5>{ 0.3, -0.9, 1.2, 0.0, 0.0 },
+															std::array<Real, 5>{ (-11.0 / 54.0), 2.5, (-70.0 / 27.0), (35.0 / 27.0), 0.0 },
+															std::array<Real, 5>{ (1631.0 / 55296.0), (175.0 / 512.0), (575.0 / 13824.0), (44275.0 / 110592.0), (253.0 / 4096.0) }};
 
 
 
