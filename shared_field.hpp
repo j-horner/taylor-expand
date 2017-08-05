@@ -17,6 +17,11 @@ public:
 	SharedField(Pointer p) : f_(std::move(p)) {
 	}
 
+	template <typename T>
+	auto operator()(T x) const {
+		return (*f_)(x);
+	}
+
 	auto func() const -> decltype(auto) { return *f_; }
 
 	auto get() const { return f_; }
@@ -25,6 +30,10 @@ protected:
 	Pointer f_;
 };
 
+template <typename F>
+auto make_shared_field(F&& f) {
+	return SharedField<F>(std::forward<F>(f));
+}
 
 }	// operators
 }	// fields

@@ -15,7 +15,7 @@ public:
 	Derivative(G&& g) : f_(std::forward<G>(g)) {
 	}
 
-	auto operator()(double x) {
+	auto operator()(double x) const {
 		static_assert(util::pow(2, 3) == 8, "Pow is broken!");
 		static_assert(util::factorial(4) == 24, "Factorial is broken!");
 		static_assert(util::binomial(4, 2) == 6, "Binomial(4, 2) is broken!");
@@ -33,17 +33,17 @@ public:
 
 private:
 	template <int K>
-	auto sum_terms(double x) {
+	auto sum_terms(double x) const {
 		return term<K>(x) + sum_terms<K - 1>(x);
 	}
 
 	template <>
-	auto sum_terms<0>(double x) {
+	auto sum_terms<0>(double x) const {
 		return term<0>(x);
 	}
 
 	template <int K>
-	auto term(double x) {
+	auto term(double x) const {
 		constexpr auto h = (N - 2 * K)*dx;
 		constexpr auto coeff = util::pow(-1, K)*util::binomial(N, K);
 		return coeff*f_.func()(x + h);
