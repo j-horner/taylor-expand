@@ -12,6 +12,9 @@ auto main() -> int {
 						return a*x*x + b*x + c;
 					};
 
+	using namespace fields::operators;
+
+
 	/*auto psi_0 =	[](double x) {
 						return std::exp(x);
 					};*/

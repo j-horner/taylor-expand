@@ -11,8 +11,11 @@ namespace operators {
 template <typename F, int N = 1>
 class Derivative {
 public:
+	
+	// Derivative(const Derivative&) = default;
+	
 	template <typename G>
-	Derivative(G&& g) : f_(std::forward<G>(g)) {
+	explicit Derivative(G&& g) : f_(std::forward<G>(g)) {
 	}
 
 	auto operator()(double x) const {
@@ -67,23 +70,23 @@ auto d_dx(F&& f) {
 }
 
 template <typename F>
-auto d_dx(SharedField<F> f) {
-	return Derivative<F>(std::move(f));
+auto d_dx(SharedField<F> f) {				
+	return Derivative<F>(std::move(f));		
 }
 
 template <int N, typename F>
 auto d_dx(SharedField<F> f) {
-	return Derivative<F, N>(std::move(f));
+	return Derivative<F, N>(std::move(f));	// F = lambda
 }
 
-template <typename F, int M>
-auto d_dx(Derivative<F, M> dydx) {
-	return d_dx<M + 1>(dydx.f());
+template <typename F, int M>			
+auto d_dx(Derivative<F, M> dydx) {		// F = lambda, M = 1
+	return d_dx<M + 1>(dydx.f());		// d_dx<2>(SharedField<lambda>)
 }
 
-template <int N, typename F, int M>
-auto d_dx(Derivative<F, M> dydx) {
-	return d_dx<M + N>(dydx.f());
+template <int N, typename F, int M>	
+auto d_dx(Derivative<F, M> dydx) {		
+	return d_dx<M + N>(dydx.f());		
 }
 
 template <int N, typename F, int M>

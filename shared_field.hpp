@@ -11,7 +11,9 @@ class SharedField {
 public:
 	using Pointer = std::shared_ptr<std::decay_t<F>>;
 	
-	SharedField(F&& f) : f_(std::make_shared<std::decay_t<F>>(std::forward<F>(f))) {
+	SharedField() = default;
+
+	explicit SharedField(F&& f) : f_(std::make_shared<std::decay_t<F>>(std::forward<F>(f))) {
 	}
 
 	SharedField(Pointer p) : f_(std::move(p)) {
