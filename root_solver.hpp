@@ -17,14 +17,9 @@ auto find_roots(F&& f) {
 		auto x_1 = x - f(x) / df_dx(x);
 
 		for (auto i = 0; i < 30; ++i) {
-			std::cout << i << "\t" << x_1 << "\t" << x << "\t" << f(x_1) << "\t" << f(x) << std::endl;
+			// std::cout << i << "\t" << x_1 << "\t" << x << "\t" << f(x_1) << "\t" << f(x) << std::endl;
 
 			const auto dx = (x_1 - x) / x_1;
-
-			// check for convergence in x
-			/*if (dx*dx < 1.0e-12) {
-				break;
-			}*/
 
 			x = x_1;
 
