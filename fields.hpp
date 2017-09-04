@@ -238,12 +238,12 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 
 				if (err_max > 1.89e-4) {
 					std::cout << "Success: " << t << "\t" << dt;
-					dt = 0.9*dt*std::pow(err_max, -0.2);
+					// dt = 0.9*dt*std::pow(err_max, -0.2);
 					std::cout << "\t" << std::endl;
 				}
 				else {
 					std::cout << "Success: " << t << "\t" << dt;
-					dt *= 5.0;
+					// dt *= 5.0;
 					std::cout << "\t" << std::endl;
 				}
 
@@ -253,7 +253,7 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 
 				std::cout << "Fail: " << t << "\t" << dt << "\t" << dt_temp << std::endl;
 
-				dt = ((dt >= 0.0) ? std::max(dt_temp, 0.1*dt) : std::min(dt_temp, 0.1*dt));
+				// dt = ((dt >= 0.0) ? std::max(dt_temp, 0.1*dt) : std::min(dt_temp, 0.1*dt));
 			}
 
 		}

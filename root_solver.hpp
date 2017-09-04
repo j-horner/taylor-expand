@@ -21,23 +21,22 @@ auto find_roots(F&& f) {
 
 			const auto dx = (x_1 - x) / x_1;
 
+			// check for convergence in f, (could be that f -> 0 as x -> inf)
+			if (std::abs(dx) < 0.9*std::sqrt(std::numeric_limits<double>::epsilon())) {
+				break;
+			}
+
 			x = x_1;
 
 			auto f_x = f(x);
 
 			x_1 = x - f_x / df_dx(x);
-
-			// check for convergence in f, (could be that f -> 0 as x -> inf)
-			if (std::abs(f_x) < 1.0e-12) {
-				break;
-			}
 		}
 
 		return x_1;
 	};
 
 	return std::array<double, 5>{find_root(-10.0), find_root(-5.0), find_root(0.0), find_root(5.0), find_root(10.0)};
-
 }
 
 
