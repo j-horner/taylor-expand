@@ -214,7 +214,7 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 			auto err_max = 0.0;
 			auto x_max = 0.0;
 
-			for (auto root : roots) {
+			for (const auto& root : roots) {
 				const auto val = relative_error(root);
 				if (val > err_max) {
 					err_max = val;
@@ -224,7 +224,9 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 
 			std::cout << "Maximum relative error is: " << err_max << " at x = " << x_max << std::endl;
 
-			if (err_max < tol) {
+			err_max /= tol;
+
+			if (err_max < 1.0) {
 				std::cout << "Success: " << t << "\t" << dt << std::endl;
 
 				// step successful
@@ -238,12 +240,12 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 
 				if (err_max > 1.89e-4) {
 					std::cout << "Success: " << t << "\t" << dt;
-					// dt = 0.9*dt*std::pow(err_max, -0.2);
+					dt = 0.9*dt*std::pow(err_max, -0.2);
 					std::cout << "\t" << std::endl;
 				}
 				else {
 					std::cout << "Success: " << t << "\t" << dt;
-					// dt *= 5.0;
+					dt *= 5.0;
 					std::cout << "\t" << std::endl;
 				}
 
@@ -253,12 +255,12 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, Real t_0, Real t_f) {
 
 				std::cout << "Fail: " << t << "\t" << dt << "\t" << dt_temp << std::endl;
 
-				// dt = ((dt >= 0.0) ? std::max(dt_temp, 0.1*dt) : std::min(dt_temp, 0.1*dt));
+				dt = ((dt >= 0.0) ? std::max(dt_temp, 0.1*dt) : std::min(dt_temp, 0.1*dt));
 			}
 
 		}
 
-		if (count > 10) break;
+		if (count > 5) break;
 	}
 
 
