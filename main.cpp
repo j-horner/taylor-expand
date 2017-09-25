@@ -1,4 +1,5 @@
 #include "fields.hpp"
+#include "minimiser.hpp"
 
 #include <iostream>
 #include <chrono>
@@ -44,11 +45,11 @@ auto main() -> int {
 
 	auto start = now();
 
-	auto psi = integrate(H, psi_0, 0.0, t);
+	// auto psi = integrate(H, psi_0, 0.0, t);
 
 	auto end = now();
 
-	std::cout << "Time integration completed in: " << std::chrono::duration<double>(end - start).count() << "s" << std::endl;
+	// std::cout << "Time integration completed in: " << std::chrono::duration<double>(end - start).count() << "s" << std::endl;
 
 	/*for (auto x = -50.0; x < 50.0; x += 0.1) {
 		auto eval_start = now();
@@ -61,6 +62,17 @@ auto main() -> int {
 		std::cout << "psi(" << x << ")\t\t= " << psi_0(x) << "\t--->\t" << psi_x << "\t" << psi_0(x)*std::exp(t) << "\t" << std::chrono::duration<double>(eval_end - eval_start).count() << "s" << std::endl;
 	}*/
 	
+
+	auto points = fields::util::bracket_minimum([](auto x) {return (x - 75.0)*(x - 75.0); });
+
+	std::cout << "Points: " << std::endl;
+	for (auto val : points.first) {
+		std::cout << val << std::endl;
+	}
+	std::cout << "Function evaluations: " << std::endl;
+	for (auto val : points.second) {
+		std::cout << val << std::endl;
+	}
 
 	return 0;
 }
