@@ -62,8 +62,9 @@ auto main() -> int {
 		std::cout << "psi(" << x << ")\t\t= " << psi_0(x) << "\t--->\t" << psi_x << "\t" << psi_0(x)*std::exp(t) << "\t" << std::chrono::duration<double>(eval_end - eval_start).count() << "s" << std::endl;
 	}*/
 	
+	const auto f = [](auto x) { return std::exp(0.005*(x - 5.0)*(x - 5.0)); };
 
-	auto points = fields::util::bracket_minimum([](auto x) {return (x - 75.0)*(x - 75.0); });
+	const auto points = fields::util::bracket_minimum(f);
 
 	std::cout << "Points: " << std::endl;
 	for (auto val : points.first) {
@@ -73,6 +74,13 @@ auto main() -> int {
 	for (auto val : points.second) {
 		std::cout << val << std::endl;
 	}
+
+	const auto& x = points.first;
+
+	auto minimum = fields::util::minimise(f, x[0], x[1], x[2]);
+
+	std::cout << "Minimum:" << std::endl;
+	std::cout << minimum.first << "\t" << minimum.second << std::endl;
 
 	return 0;
 }
