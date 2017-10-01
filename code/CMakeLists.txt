@@ -3,6 +3,8 @@ set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 project("Fields")
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
 enable_testing()
