@@ -20,9 +20,6 @@ public:
 	}
 
 	auto operator()(double x) const {
-		static_assert(util::pow(2, 3) == 8, "Pow is broken!");
-		static_assert(util::factorial(4) == 24, "Factorial is broken!");
-		static_assert(util::binomial(4, 2) == 6, "Binomial(4, 2) is broken!");
 		static_assert(util::binomial(N, 0) == 1, "Binomial(N, 0) is broken!");
 		static_assert(util::binomial(N, 1) == N, "Binomial(N, 1) is broken!");
 
