@@ -3,6 +3,11 @@ set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 project("Fields")
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
+
+enable_testing()
+include(gtest)
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR
     "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(warnings "-Wall -Wextra -Werror")
