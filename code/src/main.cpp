@@ -76,9 +76,7 @@ auto main() -> int {
 		std::cout << val << std::endl;
 	}
 
-	const auto& x = points.first;
-
-	auto minimum = fields::util::minimise(f, x[0], x[1], x[2]);
+	auto minimum = fields::util::minimise(f, points.first);
 
 	std::cout << "Minimum:" << std::endl;
 	std::cout << minimum.first << "\t" << minimum.second << std::endl;

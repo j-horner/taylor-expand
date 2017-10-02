@@ -1,5 +1,5 @@
 builds
 bin
-.vs
+.vscode
 *.sln
 *.vcxproj*
