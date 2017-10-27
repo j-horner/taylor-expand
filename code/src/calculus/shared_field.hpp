@@ -8,33 +8,33 @@ namespace operators {
 
 template <typename F>
 class SharedField {
-public:
-	using Pointer = std::shared_ptr<std::decay_t<F>>;
-	
-	SharedField() = default;
+ public:
+    using Pointer = std::shared_ptr<std::decay_t<F>>;
 
-	explicit SharedField(F&& f) : f_(std::make_shared<std::decay_t<F>>(std::forward<F>(f))) {
-	}
+    SharedField() = default;
 
-	SharedField(Pointer p) : f_(std::move(p)) {
-	}
+    explicit SharedField(F&& f) : f_(std::make_shared<std::decay_t<F>>(std::forward<F>(f))) {
+    }
 
-	template <typename T>
-	auto operator()(T x) const {
-		return (*f_)(x);
-	}
+    SharedField(Pointer p) : f_(std::move(p)) {
+    }
 
-	auto func() const -> decltype(auto) { return *f_; }
+    template <typename T>
+    auto operator()(T x) const {
+        return (*f_)(x);
+    }
 
-	auto get() const { return f_; }
+    auto func() const -> decltype(auto) { return *f_; }
 
-protected:
-	Pointer f_;
+    auto get() const { return f_; }
+
+ protected:
+    Pointer f_;
 };
 
 template <typename F>
 auto make_shared_field(F&& f) {
-	return SharedField<F>(std::forward<F>(f));
+    return SharedField<F>(std::forward<F>(f));
 }
 
 }	// operators
