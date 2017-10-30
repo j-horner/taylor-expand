@@ -63,6 +63,7 @@ TEST_F(IntegrateTest, ZeroHamiltonian) {
     auto H = [zero] (auto /*phi*/, auto /*t*/) { return zero; };
 
     // Exact solutions are identically equal to their initial conditions
+
     auto phi_poly_exact = [] (auto x, auto /*t*/) { return phi_poly(x); };
     auto phi_exp_exact = [] (auto x, auto /*t*/) { return phi_exp(x); };
 
@@ -85,20 +86,33 @@ TEST_F(IntegrateTest, ConstantHamiltonian) {
     compare_with_exact_solution(H, phi_exp, phi_exp_exact);
 }
 
-TEST_F(IntegrateTest, TimeDependentHamiltonian) {
+TEST_F(IntegrateTest, ParametricHamiltonian) {
     using namespace std;
 
     const auto v = 2.0;
     const auto w = 5.0;
 
-    auto V = [v] (auto /*x*/) { return v; };
+    auto V = [v] (auto x) { return v*x*x; };
 
     // An oscillating Hamiltonian
     auto H = [V, w] (auto /*phi*/, auto t) { return V*cos(w*t); };
 
     // Exact solutions are x(t) = x_0 + v*sin(w*t)/w
-    auto phi_poly_exact = [v, w] (auto x, auto t) { return phi_poly(x) + v*sin(w*t)/w; };
-    auto phi_exp_exact = [v, w] (auto x, auto t) { return phi_exp(x) + v*sin(w*t)/w; };
+    auto phi_poly_exact = [V, w] (auto x, auto t) { return phi_poly(x) + V(x)*sin(w*t)/w; };
+    auto phi_exp_exact = [V, w] (auto x, auto t) { return phi_exp(x) + V(x)*sin(w*t)/w; };
+
+    compare_with_exact_solution(H, phi_poly, phi_poly_exact);
+    compare_with_exact_solution(H, phi_exp, phi_exp_exact);
+}
+
+TEST_F(IntegrateTest, BasicLinearHamiltonian) {
+    const auto a = 3.0;
+
+    auto H = [a] (auto phi, auto /*t*/) { return a*phi; };
+
+    // Exact solutions exponentially grow
+    auto phi_poly_exact = [a] (auto x, auto t) { return phi_poly(x)*std::exp(a*t); };
+    auto phi_exp_exact = [a] (auto x, auto t) { return phi_exp(x)*std::exp(a*t); };
 
     compare_with_exact_solution(H, phi_poly, phi_poly_exact);
     compare_with_exact_solution(H, phi_exp, phi_exp_exact);

@@ -6,7 +6,7 @@ cd ../builds
 
 # BUILD_TYPE=Release
 
-cmake -G "Visual Studio 15 2017 Win64"  -DCMAKE_CONFIGURATION_TYPES="Release" ../code
+cmake -G "Visual Studio 15 2017 Win64"  -DCMAKE_CONFIGURATION_TYPES="Release;Debug" ../code
 
 MSBuild.exe ALL_BUILD.vcxproj -consoleloggerparameters:ForceConsoleColor -p:Configuration=Release
 # can use MSBuild to compile with command line, need to figure out where it is etc.
