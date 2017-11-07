@@ -50,8 +50,8 @@ static auto phi_poly = [a = 1.0, b = 2.0, c = 3.0] (double x) {
 };
 
 // An exponential
-static auto phi_exp = [k = 3.0] (double x) {
-    return std::exp(k*x);
+static auto phi_exp = [a = 5.0, k = 3.0] (double x) {
+    return a*std::exp(k*x);
 };
 
 // --------------------------------------------
@@ -124,6 +124,42 @@ TEST_F(IntegrateTest, BasicLinearHamiltonian) {
         auto exact = [&phi_0, a] (auto x, auto t) { return phi_0(x)*std::exp(a*t); };
 
         compare_with_exact_solution(H, phi_0, exact);
+    };
+
+    compare(phi_poly);
+    compare(phi_exp);
+}
+
+TEST_F(IntegrateTest, BasicQuadraticHamiltonian) {
+    const auto a = 3.0;
+    auto A = [a] (auto x) { return a*x*x; };
+
+    auto H = [A] (auto phi, auto /*t*/) { return A*phi*phi; };
+
+    // Exact solutions have a singularity, sample the solution at different values
+    auto compare = [this, &H, A] (auto& phi_0) {
+        auto phi_exact = [&phi_0, A] (auto x, auto t) { return phi_0(x)/(1.0 - A(x)*phi_0(x)*t); };
+
+        // evaluate phi at various points on the real axis
+        for (auto x = 0.0; x < 1.0; x += 0.1) {
+
+            // solution only exist for: t < 1 / A(x)*phi_0(x)
+            auto singularity_point = 1.0/(A(x)*phi_0(x));
+
+            singularity_point *= 0.45;      // make sure we don't get too close to the singularity otherwise the integration starts to break down
+
+            // check for division by 0, this means the singularity is at infinity so we can just stop the integration anywhere
+            if (!std::isfinite(singularity_point)) {
+                singularity_point = 10.0;
+            }
+
+            // integrate up to various upper limits
+            for (auto T = 0.0; T < singularity_point; T += 0.1) {
+                auto phi = integrate(H, phi_0, 0.0, T);
+
+                ASSERT_NEAR(phi(x), phi_exact(x, T), T*tol*std::abs(phi_exact(x, T))) << "Results:\t" << T << "\t" << x << "\t" << phi(x) << "\t" << phi_exact(x, T) << std::endl;
+            }
+        }
     };
 
     compare(phi_poly);
