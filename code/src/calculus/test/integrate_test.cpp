@@ -166,5 +166,44 @@ TEST_F(IntegrateTest, BasicQuadraticHamiltonian) {
     compare(phi_exp);
 }
 
+TEST_F(IntegrateTest, MoreComplicatedQuadraticHamiltonian) {
+    const auto a = [] (auto x) { return -5.0*std::sin(9.0*x) + 10.0; };
+    const auto b = 1.234;
+
+    auto H = [a, b] (auto phi, auto /*t*/) { return a*phi*phi + b*phi; };
+
+    auto compare = [this, &H, a, b] (auto& phi_0) {
+        // some helper functions
+        auto k = [a, b] (auto x) { return std::sqrt(b/a(x)); };
+        auto f = [&phi_0, &k, a] (auto x, auto t) { return ((phi_0(x - k(x)))/(phi_0(x + k(x))))*std::exp(2.0*a(x)*k(x)*t); };
+
+        // exact solution is complicated...
+        auto phi_exact = [&phi_0, &k, f] (auto x, auto t) { return k(x)*(1.0 + f(x, t))/(1.0 - f(x, t)); };
+
+        // evaluate phi at various points on the real axis
+        for (auto x = 0.0; x < 1.0; x += 0.1) {
+
+            auto singularity_point = (0.5/(a(x)*k(x)))*std::log((phi_0(x) + k(x))/(phi_0(x) - k(x)));
+
+            singularity_point *= 0.45;      // make sure we don't get too close to the singularity otherwise the integration starts to break down
+
+            // check for division by 0, this means the singularity is at infinity so we can just stop the integration anywhere
+            if (!std::isfinite(singularity_point)) {
+                singularity_point = 10.0;
+            }
+
+            // integrate up to various upper limits
+            for (auto T = 0.0; T < singularity_point; T += 0.1) {
+                auto phi = integrate(H, phi_0, 0.0, T);
+
+                ASSERT_NEAR(phi(x), phi_exact(x, T), T*tol*std::abs(phi_exact(x, T))) << "Results:\t" << T << "\t" << x << "\t" << phi(x) << "\t" << phi_exact(x, T) << std::endl;
+            }
+        }
+    };
+
+    compare(phi_poly);
+    compare(phi_exp);
+}
+
 }   // test
 }   // fields
