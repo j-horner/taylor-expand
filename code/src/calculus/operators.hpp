@@ -47,16 +47,31 @@ auto operator*(double k, F&& f) { return std::forward<F>(f) * k; }
 //  Add two functions
 // ------------------------------------------------------
 template <typename F, typename G>
-auto operator+(SharedField<F> f, G&& g) { return Addition<F, G>(std::move(f), std::forward<G>(g)); }
-
-template <typename F, typename G>
-auto operator+(SharedField<F> f, MultiplyScalar<G> g) { return Addition<F, MultiplyScalar<G>>(std::move(f), std::move(g)); }
-
-template <typename F, typename G>
-auto operator+(F&& f, G&& g) { return SharedField<F>(std::forward<F>(f)) + SharedField<G>(std::forward<G>(g)); }
-
-template <typename F, typename G>
 auto operator+(SharedField<F> f, SharedField<G> g) { return Addition<F, G>(std::move(f), std::move(g)); }
+
+template <typename F, typename G>
+auto operator+(SharedField<F> f, G&& g) { return std::move(f) + make_shared_field(std::forward<G>(g)); }
+
+template <typename F, typename G>
+auto operator+(F&& f, SharedField<G> g) { return make_shared_field(std::forward<F>(f)) + std::move(g);  }
+
+template <typename F, typename G>
+auto operator+(F&& f, G&& g) { return make_shared_field(std::forward<F>(f)) + make_shared_field(std::forward<G>(g)); }
+
+// ------------------------------------------------------
+//  Subtract two functions
+// ------------------------------------------------------
+template <typename F, typename G>
+auto operator-(SharedField<F> f, SharedField<G> g) { return Subtraction<F, G>(std::move(f), std::move(g)); }
+
+template <typename F, typename G>
+auto operator-(SharedField<F> f, G&& g) { return std::move(f) - make_shared_field(std::forward<G>(g)); }
+
+template <typename F, typename G>
+auto operator-(F&& f, SharedField<G> g) { return make_shared_field(std::forward<F>(f)) - std::move(g); }
+
+template <typename F, typename G>
+auto operator-(F&& f, G&& g) { return make_shared_field(std::forward<F>(f)) - make_shared_field(std::forward<G>(g)); }
 
 }	// operators
 }	// fields

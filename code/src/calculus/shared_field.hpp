@@ -20,9 +20,7 @@ class SharedField {
     }
 
     template <typename T>
-    auto operator()(T x) const {
-        return (*f_)(x);
-    }
+    auto operator()(T x) const { return (*f_)(x); }
 
     auto func() const -> decltype(auto) { return *f_; }
 

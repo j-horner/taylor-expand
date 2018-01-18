@@ -38,7 +38,7 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, double t_0, double t_f) {
 
     auto psi = FieldList<Ret(Arg)>{};
 
-    auto dt = 0.01;
+    auto dt = 0.001;
     constexpr auto sixth = 1.0 / 6.0;
 
     auto t = t_0;
@@ -55,7 +55,7 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, double t_0, double t_f) {
         using namespace operators;
 
         // RKCK coefficients    https://en.wikipedia.org/wiki/Cash%E2%80%93Karp_method
-        constexpr static auto c = std::array<double, 5>{0.2, 0.3, 1.0, 0.875};
+        constexpr static auto c = std::array<double, 5>{{0.2, 0.3, 0.6, 1.0, 0.875}};
 
         constexpr static auto b = std::array<double, 6>{(37.0 / 378.0), 0.0, (250.0 / 621.0), (125.0 / 594.0), 0.0, (512.0 / 1771.0)};
 
@@ -82,9 +82,11 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, double t_0, double t_f) {
 
         auto psi_1 = psi_0 + b[0] * K1 + b[1] * K2 + b[2] * K3 + b[3] * K4 + b[4] * K5 + b[5] * K6;
 
-        auto error = e[0] * K1 + e[1] * K2 + e[2] * K3 + e[3] * K4 + e[4] * K5 + e[5] * K6;
+        // auto error = e[0] * K1 + e[1] * K2 + e[2] * K3 + e[3] * K4 + e[4] * K5 + e[5] * K6;
 
-        return std::make_pair(std::move(psi_1), std::move(error));
+        // return std::make_pair(std::move(psi_1), std::move(error));
+
+        return psi_1;
     };
 
     // fixed step size loop
@@ -113,16 +115,18 @@ auto integrate(Hamiltonian&& H_, Psi&& psi_init, double t_0, double t_f) {
         // auto psi_1	= psi_0 + H(psi_0 + 0.5*K1, t + 0.5*dt)*dt;
 
         // RK4
-        auto K1 = H(psi_0, t)*dt;
-        auto K2 = H(psi_0 + 0.5*K1, t + 0.5*dt)*dt;
-        auto K3 = H(psi_0 + 0.5*K2, t + 0.5*dt)*dt;
-        auto K4 = H(psi_0 + K3, t + dt)*dt;
+        // auto K1 = H(psi_0, t)*dt;
+        // auto K2 = H(psi_0 + 0.5*K1, t + 0.5*dt)*dt;
+        // auto K3 = H(psi_0 + 0.5*K2, t + 0.5*dt)*dt;
+        // auto K4 = H(psi_0 + K3, t + dt)*dt;
 
-        auto psi_1 = psi_0 + (K1 + 2.0*K2 + 2.0*K3 + K4)*sixth;
+        // auto psi_1 = psi_0 + (K1 + 2.0*K2 + 2.0*K3 + K4)*sixth;
 
         // RKCK
         // auto step_pair = RKCK_step(psi_0, t, dt);
         // auto psi_1 = std::move(step_pair.first);
+        auto psi_1 = RKCK_step(psi_0, t, dt);
+
 
         psi.emplace_front(std::move(psi_1));
 

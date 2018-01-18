@@ -6,6 +6,10 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     option(gtest_force_shared_crt
            "Use shared (DLL) run-time lib even when Google Test is built as static lib."
            ON)
+
+    # GoogleTest uses std::tr1, which is deprecated in VS2017.
+    # The following is an escape-hatch macro to silence the deprecation warnings.
+    add_definitions(-D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
 elseif (APPLE)
     add_definitions(-DGTEST_USE_OWN_TR1_TUPLE=1)
 endif()
