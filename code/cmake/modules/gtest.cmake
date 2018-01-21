@@ -10,6 +10,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     # GoogleTest uses std::tr1, which is deprecated in VS2017.
     # The following is an escape-hatch macro to silence the deprecation warnings.
     add_definitions(-D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
+    add_definitions(-DGTEST_LANG_CXX11=1)
 elseif (APPLE)
     add_definitions(-DGTEST_USE_OWN_TR1_TUPLE=1)
 endif()
