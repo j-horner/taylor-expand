@@ -1,5 +1,4 @@
-#ifndef UTIL_FUNCTION_TRAITS_HPP_
-#define UTIL_FUNCTION_TRAITS_HPP_
+#pragma once
 
 #include <functional>
 #include <utility>
@@ -28,5 +27,3 @@ struct function_traits<ReturnType(ClassType::*)(Args...) const> {
 
 }   // util
 }   // fields
-
-#endif  // UTIL_FUNCTION_TRAITS_HPP_

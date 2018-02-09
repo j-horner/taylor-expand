@@ -31,6 +31,14 @@ TEST_F(ConstantTest, LiteralTest) {
     static_assert(std::is_same_v<std::decay_t<decltype(d)>, Constant<-9223372036854775807>>, "d is not Constant<-9223372036854775807>");
     static_assert(std::is_same_v<std::decay_t<decltype(e)>, Constant<0>>, "e is not Constant<0>");
     static_assert(std::is_same_v<std::decay_t<decltype(f)>, Constant<246>>, "4*123/2 != 246");
+
+    constexpr auto g = 0.1_c;
+    constexpr auto h = 0.001100_c;
+    constexpr auto i = 1.25_c;
+
+    static_assert(std::is_same_v<std::decay_t<decltype(g)>, Constant<1, 10>>, "g is not Constant<1, 10>");
+    static_assert(std::is_same_v<std::decay_t<decltype(h)>, Constant<11, 10000>>, "h is not Constant<11, 10000>");
+    static_assert(std::is_same_v<std::decay_t<decltype(i)>, Constant<5, 4>>, "g is not Constant<5, 4>");
 }
 
 }   // test

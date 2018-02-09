@@ -18,5 +18,5 @@ MSBuild.exe ALL_BUILD.vcxproj -consoleloggerparameters:ForceConsoleColor -p:Conf
 #
 # MSBUILD : error MSB1003: Specify a project or solution file. The current working directory does not contain a project or solution file.
 
-
 cd ../code
+

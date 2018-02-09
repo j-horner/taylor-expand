@@ -16,8 +16,7 @@ namespace fields {
 
 using Int = std::intmax_t;
 
-template <Int Num,
-          Int Denom = 1>
+template <Int Num, Int Denom = 1>
 class Constant : std::ratio<Num, Denom> {
  public:
     constexpr static auto num = std::ratio<Num, Denom>::num;
@@ -36,13 +35,10 @@ class Constant : std::ratio<Num, Denom> {
  private:
     template <typename T>
     constexpr static auto evaluate() {
-        if constexpr (1 == den) {
-            // the constant is an integer, maintain precision
-            return N;
+        if constexpr ((1 == den) || ((num % den) == 0)) {
+            return num/den;     // the constant is an integer, maintain precision
         } else {
-            static_assert(0 != (num % den), "std::ratio should have reduced the fraction!");
-            // otherwise return the closest real value
-            return static_cast<T>(num)/static_cast<T>(den);
+            return static_cast<T>(num)/static_cast<T>(den); // otherwise return the closest real value
         }
     }
 };
@@ -51,56 +47,45 @@ namespace literals {
 
 namespace detail {
 template <char C>
+constexpr auto convert_char_to_int();
+
+template <>
+constexpr auto convert_char_to_int<'.'>() { return std::integral_constant<char, '.'>{}; }
+
+template <char C>
 constexpr auto convert_char_to_int() {
-    constexpr auto I = static_cast<Int>(C - '0');
+    constexpr static auto I = static_cast<Int>(C - '0');   // convert a char digit into it's numerical equivalent
 
     static_assert((9 >= I) && (0 <= I), "Characters specified in Constant<N> literal are not 0-9.");
-    return I;
+    return Constant<I>{};
 }
 
-static_assert(convert_char_to_int<'0'>() == 0, "Could not convert '0' to 0");
-static_assert(convert_char_to_int<'1'>() == 1, "Could not convert '1' to 1");
-static_assert(convert_char_to_int<'2'>() == 2, "Could not convert '2' to 2");
-static_assert(convert_char_to_int<'3'>() == 3, "Could not convert '3' to 3");
-static_assert(convert_char_to_int<'4'>() == 4, "Could not convert '4' to 4");
-static_assert(convert_char_to_int<'5'>() == 5, "Could not convert '5' to 5");
-static_assert(convert_char_to_int<'6'>() == 6, "Could not convert '6' to 6");
-static_assert(convert_char_to_int<'7'>() == 7, "Could not convert '7' to 7");
-static_assert(convert_char_to_int<'8'>() == 8, "Could not convert '8' to 8");
-static_assert(convert_char_to_int<'9'>() == 9, "Could not convert '9' to 9");
+constexpr auto combine_decimals() { return Constant<0>{}; }
 
-template <char... Cs>
-constexpr auto convert_chars_to_ints() {
-    return std::integer_sequence<Int, convert_char_to_int<Cs>()...>{}; }
+template <Int A>
+constexpr auto combine_decimals(Constant<A>) { return Constant<A>{}; }
 
-template <Int... Powers>
-constexpr auto evaluate_powers_of_10(std::integer_sequence<Int, Powers...>) {
-    constexpr auto N = static_cast<Int>(sizeof...(Powers) - 1);
-    return std::integer_sequence<Int, util::pow(static_cast<Int>(10), static_cast<Int>(N - Powers))...>{};
+template <Int A, Int B, typename... Cs>
+constexpr auto combine_decimals(Constant<A, B>, Cs... digits) {
+    return Constant<A, B>{} + Constant<1, 10>{}*combine_decimals(digits...);
 }
 
-template <std::size_t N>
-constexpr auto create_powers_of_10() {
-    return evaluate_powers_of_10(std::make_integer_sequence<Int, N>{});
+template <Int A, Int B>
+constexpr auto combine(Constant<A, B>) { return Constant<A, B>{}; }
+
+template <Int A, Int B, typename... Cs>
+constexpr auto combine(Constant<A, B>, std::integral_constant<char, '.'>, Cs... digits) {
+    return Constant<A, B>{} + Constant<1, 10>{}*combine_decimals(digits...);
 }
 
-template <Int... Digits, Int... Powers>
-constexpr auto inner_product(std::integer_sequence<Int, Digits...>, std::integer_sequence<Int, Powers...>) {
-    return std::integer_sequence<Int, Digits*Powers...>{};
-}
-
-template <Int... Coefficients>
-constexpr auto sum_coefficients(std::integer_sequence<Int, Coefficients...>) {
-    constexpr auto N = (... + Coefficients);
-    return Constant<N>{};
+template <Int A, Int B, Int C, typename... Cs>
+constexpr auto combine(Constant<A, B>, Constant<C>, Cs... digits) {
+    return combine(Constant<10>{}*Constant<A, B>{} + Constant<C>{}, digits...);
 }
 
 template <char... Cs>
 constexpr auto literal_impl() {
-    constexpr auto powers = create_powers_of_10<sizeof...(Cs)>();
-    constexpr auto ints = convert_chars_to_ints<Cs...>();
-
-    return sum_coefficients(inner_product(ints, powers));
+    return combine(convert_char_to_int<Cs>()...);
 }
 
 }   //detail
@@ -175,16 +160,16 @@ constexpr auto operator^(Constant<A, B>, Constant<N>) { return (Constant<A>{}^Co
 // ---------------------------------------------------------------------------------
 
 // anything multiplied by 0 is 0
-template <typename F> constexpr auto operator*(F&&, Constant<0>) { return Constant<0>{}; }
-template <typename F> constexpr auto operator*(Constant<0>, F&&) { return Constant<0>{}; }
+// template <typename F> constexpr auto operator*(F, Constant<0>) { return Constant<0>{}};
+// template <typename F> constexpr auto operator*(Constant<0>, F) { return Constant<0>{}};
 
 // adding 0 to something does nothing
-template <typename F> constexpr auto operator+(F&& f, Constant<0>) { return std::forward<F>(f); }
-template <typename F> constexpr auto operator+(Constant<0>, F&& f) { return std::forward<F>(f); }
+// template <typename F> constexpr auto operator+(F f, Constant<0>) { return f; }
+// template <typename F> constexpr auto operator+(Constant<0>, F f) { return f; }
 
 // multiplying by 1 does nothing
-template <typename F> constexpr auto operator*(F&& f, Constant<1>) { return std::forward<F>(f); }
-template <typename F> constexpr auto operator*(Constant<1>, F&& f) { return std::forward<F>(f); }
+// template <typename F> constexpr auto operator*(F f, Constant<1>) { return f; }
+// template <typename F> constexpr auto operator*(Constant<1>, F f) { return f; }
 
 }   // operators
 }   // fields
