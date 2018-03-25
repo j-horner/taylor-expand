@@ -171,5 +171,16 @@ constexpr auto operator^(Constant<A, B>, Constant<N>) { return (Constant<A>{}^Co
 // template <typename F> constexpr auto operator*(F f, Constant<1>) { return f; }
 // template <typename F> constexpr auto operator*(Constant<1>, F f) { return f; }
 
+// ---------------------------------------------------------------------------------
+// comparison operators
+template <Int A, Int B, Int C, Int D>
+constexpr auto operator==(Constant<A, B> a, Constant<C, D> b) { return std::is_same_v<decltype(a), decltype(b)>;  }
+
+template <Int A, Int B, typename T>
+constexpr auto operator==(Constant<A, B> a, T b) { return static_cast<T>(a) == b; }
+
+template <Int A, Int B, typename T>
+constexpr auto operator==(T b, Constant<A, B> a) { return a == b; }
+
 }   // operators
 }   // fields
