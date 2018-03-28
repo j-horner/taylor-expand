@@ -6,11 +6,15 @@
 #include "multiply_scalar.hpp"
 #include "shared_field.hpp"
 
+#include "functions\constant.hpp"
+
 #include <cassert>
 #include <memory>
 
 namespace fields {
 namespace operators {
+
+using namespace literals;
 
 // ------------------------------------------------------
 //  Multiply two functions
@@ -46,7 +50,7 @@ auto operator*(double k, F&& f) { return std::forward<F>(f) * k; }
 // ------------------------------------------------------
 //  Add two functions
 // ------------------------------------------------------
-template <typename F, typename G>
+/*template <typename F, typename G>
 auto operator+(SharedField<F> f, SharedField<G> g) { return Addition<F, G>(std::move(f), std::move(g)); }
 
 template <typename F, typename G>
@@ -56,7 +60,13 @@ template <typename F, typename G>
 auto operator+(F&& f, SharedField<G> g) { return make_shared_field(std::forward<F>(f)) + std::move(g);  }
 
 template <typename F, typename G>
-auto operator+(F&& f, G&& g) { return make_shared_field(std::forward<F>(f)) + make_shared_field(std::forward<G>(g)); }
+auto operator+(F&& f, G&& g) { return make_shared_field(std::forward<F>(f)) + make_shared_field(std::forward<G>(g)); }*/
+
+template <typename F>
+constexpr auto operator+(F, F) { return 2_c*F{}; }
+
+template <typename F, typename G>
+constexpr auto operator+(F, G) { return Addition<F, G>{}; }
 
 // ------------------------------------------------------
 //  Subtract two functions

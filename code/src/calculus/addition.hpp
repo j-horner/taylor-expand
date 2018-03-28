@@ -5,7 +5,7 @@
 namespace fields {
 namespace operators {
 
-template <typename F, typename G>
+/*template <typename F, typename G>
 class Addition : public Composite<F, G> {
  public:
     template <typename Lhs, typename Rhs>
@@ -14,7 +14,19 @@ class Addition : public Composite<F, G> {
 
     template <typename T>
     auto operator() (T x) { return f_(x) + g_(x); }
+};*/
+
+template <typename F, typename G>
+class Addition {
+public:
+    template <typename T>
+    constexpr auto operator()(T x) const { return f_(x) + g_(x); }
+ 
+ private:
+     F f_;
+     G g_;
 };
+
 
 template <typename F, typename G>
 class Subtraction : public Composite<F, G> {
