@@ -1,11 +1,12 @@
 #pragma once
 
 #include "composite.hpp"
+#include "addition.hpp"
 
 namespace fields {
 namespace operators {
 
-template <typename F>
+/*template <typename F>
 class MultiplyScalar;
 
 template <typename F, typename G>
@@ -44,8 +45,42 @@ public:
 			return MultiplyBase<F, F>::operator()(x);	// otherwise call default f*g
 		}
 	}
+};*/
+
+template <typename F, typename G>
+class Multiplication {
+public:
+    template <typename T>
+    constexpr auto operator()(T x) const { return lhs(x)*rhs(x); }
+
+    F lhs;
+    G rhs;
 };
 
+template <typename F, typename G>
+class Division {
+public:
+    template <typename T>
+    constexpr auto operator()(T x) const { return lhs(x)/rhs(x); }
+
+    F lhs;
+    G rhs;
+};
+
+template <typename F, typename G>
+constexpr auto operator*(F lhs, G rhs) { return Multiplication<F, G>{lhs, rhs}; }
+
+template <typename F, typename G>
+constexpr auto operator/(F lhs, G rhs) { return Division<F, G>{lhs, rhs}; }
+
+template <typename A, typename B, typename C, typename D>
+constexpr auto operator==(Multiplication<A, B>, Multiplication<C, D>) { return (std::is_same_v<A, C> && std::is_same_v<B, D>) || (std::is_same_v<A, D> && std::is_same_v<B, C>); }
+
+template <typename F, typename G>
+constexpr auto d_dx(Multiplication<F, G> y) { return d_dx(y.lhs)*y.rhs + y.lhs*d_dx(y.rhs); }
+
+template <typename F, typename G>
+constexpr auto d_dx(Division<F, G> y) { return d_dx(y.lhs)/y.rhs - y.lhs*d_dx(y.rhs)/(y.rhs*y.rhs); }
 
 }	// operators
 

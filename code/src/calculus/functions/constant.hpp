@@ -43,9 +43,19 @@ class Constant : std::ratio<Num, Denom> {
     }
 };
 
+template <typename T>
+struct is_constant : std::false_type {};
+
+template <Int A, Int B>
+struct is_constant<Constant<A, B>> : std::true_type {};
+
+template <typename T>
+constexpr static auto is_not_constant = is_constant<T>::value == false;
+
 namespace literals {
 
 namespace detail {
+
 template <char C>
 constexpr auto convert_char_to_int();
 
@@ -159,17 +169,19 @@ template <Int A, Int B, Int N>
 constexpr auto operator^(Constant<A, B>, Constant<N>) { return (Constant<A>{}^Constant<N>{}) / (Constant<B>{}^Constant<N>{}); }
 // ---------------------------------------------------------------------------------
 
-// anything multiplied by 0 is 0
-// template <typename F> constexpr auto operator*(F, Constant<0>) { return Constant<0>{}};
-// template <typename F> constexpr auto operator*(Constant<0>, F) { return Constant<0>{}};
+// Ensure Constant is always on the left
+template <Int A, Int B, typename F>
+constexpr auto operator*(F f, Constant<A, B> k) -> typename std::enable_if_t<is_not_constant<F>,  decltype(k*f)> { return k*f;}
 
-// adding 0 to something does nothing
-// template <typename F> constexpr auto operator+(F f, Constant<0>) { return f; }
-// template <typename F> constexpr auto operator+(Constant<0>, F f) { return f; }
+// anything multiplied by 0 is 0
+template <typename F> constexpr auto operator*(Constant<0>, F) -> typename std::enable_if_t<is_not_constant<F>,  Constant<0>> { return 0_c; }
 
 // multiplying by 1 does nothing
-// template <typename F> constexpr auto operator*(F f, Constant<1>) { return f; }
-// template <typename F> constexpr auto operator*(Constant<1>, F f) { return f; }
+template <typename F> constexpr auto operator*(Constant<1>, F f) -> typename std::enable_if_t<is_not_constant<F>,  F> { return f; }
+
+// adding 0 to something does nothing
+template <typename F> constexpr auto operator+(F f, Constant<0>) -> typename std::enable_if_t<is_not_constant<F>,  F> { return f; }
+template <typename F> constexpr auto operator+(Constant<0>, F f) -> typename std::enable_if_t<is_not_constant<F>,  F> { return f; }
 
 // ---------------------------------------------------------------------------------
 // comparison operators

@@ -8,7 +8,7 @@
 
 namespace fields {
 namespace operators {
-
+/*
 template <typename F, int N = 1>
 class Derivative {
  public:
@@ -105,6 +105,8 @@ template <int N, typename F>
 auto d_dx(SharedField<MultiplyScalar<F>> y) {
     return y.func().scalar()*d_dx<N>(y.func().f());
 }
+
+*/
 
 }   // operators
 }   // fields
