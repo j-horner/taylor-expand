@@ -49,6 +49,16 @@ struct is_constant : std::false_type {};
 template <Int A, Int B>
 struct is_constant<Constant<A, B>> : std::true_type {};
 
+template <typename F>
+struct is_one_or_zero : std::false_type {};
+
+template <>
+struct is_one_or_zero<Constant<0>> : std::true_type {};
+
+template <>
+struct is_one_or_zero<Constant<1>> : std::true_type {};
+
+
 template <typename T>
 constexpr static auto is_not_constant = is_constant<T>::value == false;
 
@@ -138,14 +148,18 @@ constexpr auto operator*(Constant<A, B>, Constant<C, D>) {
 
 template <Int A, Int B, Int C, Int D>
 constexpr auto operator/(Constant<A, B>, Constant<C, D>) {
+    static_assert(C != 0, "Attempting to divide by 0!");
     using R = std::ratio_divide<std::ratio<A, B>, std::ratio<C, D>>;
     return Constant<R::num, R::den>{};
 }
 // ---------------------------------------------------------------------------------
 
-// -(a/b) -> (-a)/b
+// -f = (-1)*f
 template <Int A, Int B>
 constexpr auto operator-(Constant<A, B>) { return Constant<-A, B>{}; }
+
+template <typename F>
+constexpr auto operator-(F f) { return -1_c*f; }
 
 // ---------------------------------------------------------------------------------
 // power operator with integers, if rational powers are needed do it later
@@ -169,19 +183,36 @@ template <Int A, Int B, Int N>
 constexpr auto operator^(Constant<A, B>, Constant<N>) { return (Constant<A>{}^Constant<N>{}) / (Constant<B>{}^Constant<N>{}); }
 // ---------------------------------------------------------------------------------
 
+namespace detail {
+
+// If F != Constant<A, B>, use type T. Otherwise eliminate the corresponding function from potential overloads.
+template <typename F, typename T>
+using only_if_not_constant = typename std::enable_if_t<is_not_constant<F>, T>;
+
+}
+
 // Ensure Constant is always on the left
 template <Int A, Int B, typename F>
-constexpr auto operator*(F f, Constant<A, B> k) -> typename std::enable_if_t<is_not_constant<F>,  decltype(k*f)> { return k*f;}
+constexpr auto operator*(F f, Constant<A, B> k) -> detail::only_if_not_constant<F,  decltype(k*f)> { return k*f;}
 
 // anything multiplied by 0 is 0
-template <typename F> constexpr auto operator*(Constant<0>, F) -> typename std::enable_if_t<is_not_constant<F>,  Constant<0>> { return 0_c; }
+template <typename F>
+constexpr auto operator*(Constant<0>, F) -> detail::only_if_not_constant<F,  Constant<0>> { return 0_c; }
+
+// 0 divided by anything is 0 (apart from 0!)
+// 0/0 will cause substitution failure
+template <typename F>
+constexpr auto operator/(Constant<0>, F) -> detail::only_if_not_constant<F, Constant<0>> { return 0_c; }
 
 // multiplying by 1 does nothing
-template <typename F> constexpr auto operator*(Constant<1>, F f) -> typename std::enable_if_t<is_not_constant<F>,  F> { return f; }
+template <typename F>
+constexpr auto operator*(Constant<1>, F f) -> detail::only_if_not_constant<F, F> { return f; }
 
 // adding 0 to something does nothing
-template <typename F> constexpr auto operator+(F f, Constant<0>) -> typename std::enable_if_t<is_not_constant<F>,  F> { return f; }
-template <typename F> constexpr auto operator+(Constant<0>, F f) -> typename std::enable_if_t<is_not_constant<F>,  F> { return f; }
+template <typename F>
+constexpr auto operator+(F f, Constant<0>) -> detail::only_if_not_constant<F, F> { return f; }
+template <typename F>
+constexpr auto operator+(Constant<0>, F f) -> detail::only_if_not_constant<F, F> { return f; }
 
 // ---------------------------------------------------------------------------------
 // comparison operators

@@ -54,17 +54,33 @@ public:
 template <typename F>
 constexpr auto operator+(F, F) { return 2_c*F{}; }
 
-template <typename F, Int A, Int B>
-constexpr auto operator+(Multiplication<Constant<A, B>, F> y, F f) { return (y.lhs + 1_c)*f; }
+template <typename F, typename G>
+constexpr auto operator+(Multiplication<G, F> y, F f) { return (y.get<0>() + 1_c)*f; }
 
-template <typename F, Int A, Int B>
-constexpr auto operator+(F f, Multiplication<Constant<A, B>, F> y) { return y + f; }
+template <typename F, typename G>
+constexpr auto operator+(F f, Multiplication<G, F> y) { return y + f; }
 
 template <typename F, typename G>
 constexpr auto operator+(F lhs, G rhs) { return Addition<F, G>{lhs, rhs}; }
 
+
+
+template <typename F>
+constexpr auto operator-(F, F) { return 0_c; }
+
+template <typename F, typename G>
+constexpr auto operator-(Multiplication<G, F> y, F f) { return (y.get<0>() - 1_c)*f; }
+
+template <typename F, typename G>
+constexpr auto operator-(F f, Multiplication<G, F> y) { return -(y - f); }
+
+template <typename A, typename B, typename C, typename D>
+constexpr auto operator-(Division<A, B> f, Division<C, D> g) { return (f.lhs*g.rhs - f.rhs*g.lhs)/(f.rhs*g.rhs); }
+
 template <typename F, typename G>
 constexpr auto operator-(F lhs, G rhs) { return Subtraction<F, G>{lhs, rhs}; }
+
+
 
 template <typename F, typename G>
 constexpr auto d_dx(Addition<F, G> y) { return d_dx(y.lhs) + d_dx(y.rhs); }

@@ -51,6 +51,8 @@ TEST_F(ConstantTest, LiteralTest) {
 
 	static_assert(5_c == 5, "5 is not 5!");
 	static_assert(0.5 == 0.5_c, "0.5 is not 0.5!");
+
+    // constexpr auto undef = 0_c/0_c;     // should not compile!
 }
 
 }   // test

@@ -28,24 +28,39 @@ TEST_F(LinearTest, DerivativeIsCorrect) {
         static_assert(y(2) == 8, "4x(2) != 8");
         static_assert(d_dx(y) == 4, "d(4x)/dx != 4");
     }
-    /*{
+    {
         constexpr auto y = x - x;
+
+        static_assert(y == 0, "0x != 0");
         static_assert(y(23) == 0, "0x(23) != 0");
         static_assert(d_dx(y) == 0, "d(0x)/dx != 0");
     }
     {
         constexpr auto y = x + x - x + x + x + x - x - x - x + x - x - x;
+        
+        static_assert(y == 0, "0x != 0");
         static_assert(y(23) == 0, "0x(23) != 0");
         static_assert(d_dx(y) == 0, "d(0x)/dx != 0");
     }
     {
         constexpr auto y = x*x;
-        constexpr auto f = d_dx(y);
-        constexpr auto g = 2_c*x;
-
+    
         static_assert(y(2) == 4, "x^2(2) != 4");
-        // static_assert(d_dx(y) == 2_c*x, "d(4x)/dx != 4x^3");
-    }*/
+        static_assert(d_dx(y) == 2_c*x, "d(4x)/dx != 4x^3");
+    }
+    {
+        constexpr auto y = x/x;
+
+        static_assert(y(2) == 1, "1(2) != 1");
+        static_assert(d_dx(y) == 0, "d(1)/dx != 0");
+    }
+    {
+        constexpr auto y = x*x*x;
+
+        static_assert(false, "Almost got product rule working.");
+
+        d_dx(y) = 5;
+    }
 
 }
 
