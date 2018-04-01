@@ -9,7 +9,6 @@ namespace fields {
 namespace test {
 
 class LinearTest : public ::testing::Test {
-
 };
 
 TEST_F(LinearTest, DerivativeIsCorrect) {
@@ -54,13 +53,13 @@ TEST_F(LinearTest, DerivativeIsCorrect) {
         static_assert(y(2) == 1, "1(2) != 1");
         static_assert(d_dx(y) == 0, "d(1)/dx != 0");
     }
-    {
+    /*{
         constexpr auto y = x*x*x;
 
-        static_assert(false, "Almost got product rule working.");
-
         d_dx(y) = 5;
-    }
+
+        static_assert(y(4) == 64, "x^3(4) != 64");
+    }*/
 
 }
 

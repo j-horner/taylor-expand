@@ -189,6 +189,9 @@ namespace detail {
 template <typename F, typename T>
 using only_if_not_constant = typename std::enable_if_t<is_not_constant<F>, T>;
 
+template <typename F, typename T>
+using only_if_not_1_or_0 = typename std::enable_if_t<(std::is_same_v<F, Constant<0>> == false) && (std::is_same_v<F, Constant<1>> == false), T>;
+
 }
 
 // Ensure Constant is always on the left

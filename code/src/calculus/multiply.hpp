@@ -71,11 +71,11 @@ class Multiplication {
      constexpr Multiplication() = default;
 
      template <typename... Ts, typename G>
-     constexpr Multiplication(Multiplication<Ts...> lhs, G rhs) : fs(std::tuple_cat(lhs.fs, std::make_tuple(rhs))) {
+     constexpr Multiplication(G lhs, Multiplication<Ts...> rhs) : fs(std::tuple_cat(std::make_tuple(lhs), rhs.fs)) {
      }
 
      template <typename... Ts, typename G>
-     constexpr Multiplication(G lhs, Multiplication<Ts...> rhs) : Multiplication(rhs, lhs) {
+     constexpr Multiplication(Multiplication<Ts...> lhs, G rhs) : Multiplication(rhs, lhs) {
      }
 
      template <typename F, typename G>
@@ -92,6 +92,12 @@ class Multiplication {
 
      template <std::size_t I>
      constexpr auto& get() const { return std::get<I>(fs); }
+
+    template <std::size_t I, std::size_t J>
+    constexpr auto subset() const {
+        static_assert((I <= N) && (J <= N) && (I <= J), "Expect following conditions on I, J: (I <= N) && (J <= N) && (I <= J)");
+        return subset_impl<I>(std::make_index_sequence<J - I>{});
+    }
 
      constexpr auto product_rule() const { return product_rule_impl(std::make_index_sequence<N>{}); }
 
@@ -121,9 +127,6 @@ class Multiplication {
         }
     }
 
-    template <std::size_t I, std::size_t J>
-    constexpr auto subset() const { return subset_impl<I>(std::make_index_sequence<J - I>{}); }
-
     template <std::size_t I, std::size_t... Is>
     constexpr auto subset_impl(std::index_sequence<Is...>) const {
         if constexpr (sizeof...(Is) == 1) {
@@ -152,6 +155,22 @@ public:
 };
 
 
+template <typename G, typename... Fs>
+constexpr auto operator*(Multiplication<Fs...> f, G g) -> detail::only_if_not_constant<G, decltype(g*f)> { return g*f; }
+
+template <typename... Fs, typename G>
+constexpr auto operator*(G g, Multiplication<Fs...> f) -> detail::only_if_not_1_or_0<G, Multiplication<G, Fs...>> { return Multiplication<G, Fs...>(g, f); }
+
+/*template <Int A, Int B, Int C, Int D, typename... Fs>
+constexpr auto operator*(Constant<A, B>, Multiplication<Constant<C, D>, Fs...> y) { return Constant<A, B>{}*Constant<C, D>{}*y.subset<1, sizeof...(Fs) + 1>(); }*/
+
+template <typename F, typename G>
+constexpr auto operator*(F lhs, G rhs) { return Multiplication<F, G>(lhs, rhs); }
+
+
+
+
+/*
 template <typename F, typename G>
 constexpr auto operator*(F lhs, G rhs) -> typename std::enable_if_t<(is_one_or_zero<F>::value == false) &&
                                                                     (is_one_or_zero<G>::value == false) &&
@@ -160,13 +179,13 @@ constexpr auto operator*(F lhs, G rhs) -> typename std::enable_if_t<(is_one_or_z
 }
 
 
-
+template <typename... Fs, typename G>
+constexpr auto operator*(G lhs, Multiplication<Fs...> rhs) -> typename std::enable_if_t<is_one_or_zero<G>::value == false, Multiplication<Fs..., G>> { return rhs*lhs; }
 
 template <typename... Fs, typename G>
 constexpr auto operator*(Multiplication<Fs...> lhs, G rhs) -> typename std::enable_if_t<is_one_or_zero<G>::value == false, Multiplication<Fs..., G>> { return Multiplication<Fs..., G>(lhs, rhs); }
 
-template <typename... Fs, typename G>
-constexpr auto operator*(G lhs, Multiplication<Fs...> rhs) -> typename std::enable_if_t<is_one_or_zero<G>::value == false, Multiplication<Fs..., G>> { return rhs*lhs; }
+*/
 
 
 

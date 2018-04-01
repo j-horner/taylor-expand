@@ -1,2 +1,2 @@
-add_gtest_test(calculus_test
-                integrate_test.cpp)
+add_gtest_test(calculus_test integrate_test.cpp)
+add_gtest_test(multiplication_test multiplication_test.cpp)
