@@ -96,7 +96,14 @@ class Addition {
     constexpr static auto N = sizeof...(Fs);
 };
 
+template <typename T>
+struct is_addition : std::false_type {};
 
+template <typename... Fs>
+struct is_addition<Addition<Fs...>> : std::true_type {};
+
+template <typename T>
+constexpr static bool is_not_addition = is_addition<T>::value == false;
 
 
 
@@ -117,19 +124,46 @@ template <typename F, typename G>
 class Division;
 
 template <typename F>
-constexpr auto operator+(F, F) { return 2_c*F{}; }
+constexpr auto operator+(F, F) {
+    using namespace literals;
+    return 2_c*F{};
+}
 
 template <typename F, typename G>
-constexpr auto operator+(Multiplication<G, F> y, F f) { return (y.get<0>() + 1_c)*f; }
+constexpr auto operator+(Multiplication<G, F> y, F f) {
+    using namespace literals;
+    return (y.get<0>() + 1_c)*f;
+}
+
+template <typename F, typename G>
+constexpr auto operator+(F f, Multiplication<G, F> y) {
+    using namespace literals;
+    return (1_c + y.get<0>())*f;
+}
 
 template <typename F, typename... Gs>
-constexpr auto operator+(Multiplication<Gs..., F> y, F f) { return (y.sub_product<0, sizeof...(Gs)>() + 1_c)*f; }
+constexpr auto operator+(Multiplication<F, Gs...> y, F f) {
+    using namespace literals;
+    return f*(y.sub_product<1, sizeof...(Gs) + 1>() + 1_c);
+}
 
 template <typename F, typename... Gs>
-constexpr auto operator+(F f, Multiplication<Gs..., F> y) { return (1_c + y.sub_product<0, sizeof...(Gs)>())*f; }
+constexpr auto operator+(F f, Multiplication<F, Gs...> y) {
+    using namespace literals;
+    return f*(1_c + y.sub_product<1, sizeof...(Gs) + 1>());
+}
 
 template <typename F, typename... Gs>
-constexpr auto operator+(Multiplication<Gs...> lhs, Multiplication<F, Gs...> rhs) { return lhs*(1_c + rhs.get<0>()); }
+constexpr auto operator+(Multiplication<Gs...> lhs, Multiplication<F, Gs...> rhs) {
+    using namespace literals;
+    return (1_c + rhs.get<0>())*lhs;
+}
+
+template <typename F, typename... Gs>
+constexpr auto operator+(Multiplication<F, Gs...> lhs, Multiplication<Gs...> rhs) {
+    using namespace literals;
+    return (lhs.get<0>() + 1_c)*rhs;
+}
 
 template <typename G, typename... Fs>
 constexpr auto operator+(Addition<Fs...> f, G g) { return Addition<Fs..., G>(f, g); }
@@ -149,13 +183,29 @@ constexpr auto operator+(F lhs, G rhs) { return Addition<F, G>(lhs, rhs); }
 
 
 template <typename F>
-constexpr auto operator-(F, F) { return 0_c; }
+constexpr auto operator-(F, F) {
+    using namespace literals;
+    return 0_c;
+}
 
 template <typename F, typename G>
-constexpr auto operator-(Multiplication<G, F> y, F f) { return (y.get<0>() - 1_c)*f; }
+constexpr auto operator-(Multiplication<G, F> y, F f) {
+    using namespace literals;
+    return (y.get<0>() - 1_c)*f;
+}
+
+template <typename F, typename G>
+constexpr auto operator-(F f, Multiplication<G, F> y) {
+    using namespace literals;
+    return (1_c - y.get<0>())*f;
+}
 
 template <typename F, typename... Gs>
-constexpr auto operator-(Multiplication<Gs..., F> y, F f) { return (Multiplication<Gs...>{} - 1_c)*f; }
+constexpr auto operator-(Multiplication<F, Gs...> y, F f) {
+    using namespace literals;
+    static_assert(false, "Carry on here!");
+    return (Multiplication<Gs...>{} - 1_c)*f;
+}
 
 template <typename F, typename... Gs>
 constexpr auto operator-(F f, Multiplication<Gs..., F> y) { return -(y - f); }
@@ -167,9 +217,14 @@ template <typename F, typename G>
 constexpr auto operator-(F lhs, G rhs) { return Subtraction<F, G>{lhs, rhs}; }
 
 
+template <typename... Fs, typename... Gs>
+constexpr auto operator==(Addition<Fs...> lhs, Addition<Gs...> rhs) { return std::is_same_v<decltype(lhs), decltype(rhs)>; }
+
 
 template <typename... Fs>
 constexpr auto d_dx(Addition<Fs...> y) { return y.derivative(); }
+
+
 
 template <typename F, typename G>
 constexpr auto d_dx(Subtraction<F, G> y) { return d_dx(y.lhs) - d_dx(y.rhs); }

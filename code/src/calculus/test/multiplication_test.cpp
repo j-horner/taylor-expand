@@ -5,31 +5,39 @@
 namespace fields {
 namespace test {
 
-struct A {};
-struct B {};
-struct C {};
-struct D {};
+struct A {
+    template <typename T> constexpr auto operator()(T) const { return 3; }
+};
+struct B {
+    template <typename T> constexpr auto operator()(T x) const { return 2*x; }
+};
+struct C {
+    template <typename T> constexpr auto operator()(T x) const { return 4*x; }
+};
+struct D {
+    template <typename T> constexpr auto operator()(T x) const { return x*x; }
+};
 
 struct dA_dx {};
 struct dB_dx {};
 struct dC_dx {};
 struct dD_dx {};
 
-auto d_dx(A) -> dA_dx { return {}; }
-auto d_dx(B) -> dB_dx { return {}; }
-auto d_dx(C) -> dC_dx { return {}; }
-auto d_dx(D) -> dD_dx { return {}; }
+constexpr auto d_dx(A) -> dA_dx { return {}; }
+constexpr auto d_dx(B) -> dB_dx { return {}; }
+constexpr auto d_dx(C) -> dC_dx { return {}; }
+constexpr auto d_dx(D) -> dD_dx { return {}; }
 
 class MultiplicationTest : public ::testing::Test {
+ protected:
+    constexpr static auto a = A{};
+    constexpr static auto b = B{};
+    constexpr static auto c = C{};
+    constexpr static auto d = D{};
 };
 
 TEST_F(MultiplicationTest, Mutliplication_Is_Correct) {
     using namespace operators;
-
-    constexpr auto a = [] (auto) { return 3; };
-    constexpr auto b = [] (auto x) { return 2*x; };
-    constexpr auto c = [] (auto x) { return 4*x; };
-    constexpr auto d = [] (auto x) { return x*x; };
 
     constexpr auto y = a*b*c*d;
 
@@ -38,30 +46,27 @@ TEST_F(MultiplicationTest, Mutliplication_Is_Correct) {
     static_assert(std::is_same_v<std::decay_t<decltype(a)>, std::decay_t<decltype(y.get<0>())>>);
     static_assert(std::is_same_v<std::decay_t<decltype(d)>, std::decay_t<decltype(y.get<3>())>>);
 
-    static_assert(std::is_same_v<std::decay_t<decltype(b*c)>, std::decay_t<decltype(y.sub_product<1, 3>())>>);
+    static_assert(b*c == y.sub_product<1, 3>());
+
+    static_assert((a*b)*c == a*(b*c), "* is not associative");
 
     constexpr auto f = a*b;
     constexpr auto g = c*d;
 
-    static_assert(std::is_same_v<std::decay_t<decltype(f*g)>, std::decay_t<decltype(y)>>, "(a*b)*(c*d) != a*b*c*d");
+    static_assert(f*g == y, "(a*b)*(c*d) != a*b*c*d");
 }
 
 TEST_F(MultiplicationTest, Derivative_Is_Correct) {
     using namespace operators;
-
-    constexpr auto a = A{};
-    constexpr auto b = B{};
-    constexpr auto c = C{};
-    constexpr auto d = D{};
 
     constexpr auto da_dx = dA_dx{};
     constexpr auto db_dx = dB_dx{};
     constexpr auto dc_dx = dC_dx{};
     constexpr auto dd_dx = dD_dx{};
 
-    static_assert(std::is_same_v<decltype(d_dx(a*b)), decltype(da_dx*b + a*db_dx)>, "d_dx(a*b) != da_dx*b + a*db_dx");
-    static_assert(std::is_same_v<decltype(d_dx(a*b*c)), decltype(da_dx*b*c + a*db_dx*c + a*b*dc_dx)>, "d_dx(a*b*c) != da_dx*b*c + a*db_dx*c + a*b*dc_dx");
-    static_assert(std::is_same_v<decltype(d_dx(a*b*c*d)), decltype(da_dx*b*c*d + a*db_dx*c*d + a*b*dc_dx*d + a*b*c*dd_dx)>, "d_dx(a*b*c*d) != da_dx*b*c*d + a*db_dx*c*d + a*b*dc_dx*d + a*b*c*dd_dx");
+    static_assert(d_dx(a*b) == da_dx*b + a*db_dx, "d_dx(a*b) != da_dx*b + a*db_dx");
+    static_assert(d_dx(a*b*c) == da_dx*b*c + a*db_dx*c + a*b*dc_dx, "d_dx(a*b*c) != da_dx*b*c + a*db_dx*c + a*b*dc_dx");
+    static_assert(d_dx(a*b*c*d) == da_dx*b*c*d + a*db_dx*c*d + a*b*dc_dx*d + a*b*c*dd_dx, "d_dx(a*b*c*d) != da_dx*b*c*d + a*db_dx*c*d + a*b*dc_dx*d + a*b*c*dd_dx");
 }
 
 

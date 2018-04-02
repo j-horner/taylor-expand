@@ -147,6 +147,16 @@ class Multiplication {
     constexpr static auto N = sizeof...(Fs);
 };
 
+template <typename T>
+struct is_multiplication : std::false_type {};
+
+template <typename... Fs>
+struct is_multiplication<Multiplication<Fs...>> : std::true_type {};
+
+template <typename T>
+constexpr static auto is_not_multiplication = is_multiplication<T>::value == false;
+
+
 
 
 template <typename F, typename G>
