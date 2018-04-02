@@ -2,7 +2,7 @@
 
 #include "composite.hpp"
 #include "addition.hpp"
-#include "functions\constant.hpp"
+#include "functions/constant.hpp"
 
 namespace fields {
 namespace operators {
@@ -66,80 +66,85 @@ public:
 template <typename... Fs>
 class Multiplication {
  public:
-     constexpr static auto N = sizeof...(Fs);
 
-     constexpr Multiplication() = default;
+    constexpr Multiplication() = default;
 
-     template <typename... Ts, typename G>
-     constexpr Multiplication(G lhs, Multiplication<Ts...> rhs) : fs(std::tuple_cat(std::make_tuple(lhs), rhs.fs)) {
-     }
+    template <typename... Ts, typename G>
+    constexpr Multiplication(G lhs, Multiplication<Ts...> rhs) : fs(std::tuple_cat(std::make_tuple(lhs), rhs.fs)) {
+    }
 
-     template <typename... Ts, typename G>
-     constexpr Multiplication(Multiplication<Ts...> lhs, G rhs) : Multiplication(rhs, lhs) {
-     }
+    template <typename... Ts, typename G>
+    constexpr Multiplication(Multiplication<Ts...> lhs, G rhs) : fs(std::tuple_cat(lhs.fs, std::make_tuple(rhs))) {
+    }
 
-     template <typename F, typename G>
-     constexpr Multiplication(F lhs, G rhs) : fs(std::make_tuple(lhs, rhs)) {
-     }
+    template <typename... Ts, typename... Us>
+    constexpr Multiplication(Multiplication<Ts...> lhs, Multiplication<Us...> rhs) : fs(std::tuple_cat(lhs.fs, rhs.fs)) {
+    }
 
-     explicit constexpr Multiplication(std::tuple<Fs...> ts) : fs(ts) {
-     }
+    template <typename F, typename G>
+    constexpr Multiplication(F lhs, G rhs) : fs(std::make_tuple(lhs, rhs)) {
+    }
 
-     std::tuple<Fs...> fs;
+    template <typename T>
+    constexpr auto operator()(T x) const { return multiply_impl(x, std::make_index_sequence<N>{}); }
 
-     template <typename T>
-     constexpr auto operator()(T x) const { return multiply_impl(x, std::make_index_sequence<N>{}); }
-
-     template <std::size_t I>
-     constexpr auto& get() const { return std::get<I>(fs); }
+    template <std::size_t I>
+    constexpr auto& get() const { return std::get<I>(fs); }
 
     template <std::size_t I, std::size_t J>
-    constexpr auto subset() const {
+    constexpr auto sub_product() const {
         static_assert((I <= N) && (J <= N) && (I <= J), "Expect following conditions on I, J: (I <= N) && (J <= N) && (I <= J)");
         return subset_impl<I>(std::make_index_sequence<J - I>{});
     }
 
-     constexpr auto product_rule() const { return product_rule_impl(std::make_index_sequence<N>{}); }
+    constexpr auto derivative() const { return derivative_impl(std::make_index_sequence<N>{}); }
 
  private:
+    template <typename... Gs> friend class Multiplication;
+
+    explicit constexpr Multiplication(std::tuple<Fs...> ts) : fs(ts) {
+    }
 
     // https://stackoverflow.com/questions/43242923/product-of-functions-with-a-fold-expression#43243060
     template <typename T, std::size_t... Is>
-    constexpr auto multiply_impl(T x, std::index_sequence<Is...>) const { return (std::get<Is>(fs)(x)*...); }
+    constexpr auto multiply_impl(T x, std::index_sequence<Is...>) const { return (get<Is>()(x)*...); }
 
     template <std::size_t... Is>
-    constexpr auto product_rule_impl(std::index_sequence<Is...>) const { return (product_rule_term<Is>() + ...); }
+    constexpr auto derivative_impl(std::index_sequence<Is...>) const { return (product_rule_term<Is>() + ...); }
 
     template <std::size_t I>
     constexpr auto product_rule_term() const {
         if constexpr (I == 0) {
-            
-            return d_dx(get<0>())*subset<1, N>();
-        
+
+            return d_dx(get<0>())*sub_product<1, N>();
+
         } else if constexpr (I == (N - 1)) {
-            
-            return subset<0, N - 1>()*d_dx(get<N - 1>());
-        
+
+            return sub_product<0, N - 1>()*d_dx(get<N - 1>());
+
         } else {
 
-            return subset<0, I>()*d_dx(get<I>())*subset<I + 1, N>();
-        
+            return sub_product<0, I>()*d_dx(get<I>())*sub_product<I + 1, N>();
+
         }
     }
 
     template <std::size_t I, std::size_t... Is>
     constexpr auto subset_impl(std::index_sequence<Is...>) const {
         if constexpr (sizeof...(Is) == 1) {
-            
+
             return get<I>();
-        
+
         } else {
-            
+
             return Multiplication<std::decay_t<decltype(get<I + Is>())>...>(std::make_tuple(get<I + Is>()...));
-        
+
         }
     }
 
+     std::tuple<Fs...> fs;
+
+    constexpr static auto N = sizeof...(Fs);
 };
 
 
@@ -156,13 +161,13 @@ public:
 
 
 template <typename G, typename... Fs>
-constexpr auto operator*(Multiplication<Fs...> f, G g) -> detail::only_if_not_constant<G, decltype(g*f)> { return g*f; }
+constexpr auto operator*(Multiplication<Fs...> f, G g) -> detail::only_if_not_constant<G, Multiplication<Fs..., G>> { return Multiplication<Fs..., G>(f, g); }
 
 template <typename... Fs, typename G>
 constexpr auto operator*(G g, Multiplication<Fs...> f) -> detail::only_if_not_1_or_0<G, Multiplication<G, Fs...>> { return Multiplication<G, Fs...>(g, f); }
 
-/*template <Int A, Int B, Int C, Int D, typename... Fs>
-constexpr auto operator*(Constant<A, B>, Multiplication<Constant<C, D>, Fs...> y) { return Constant<A, B>{}*Constant<C, D>{}*y.subset<1, sizeof...(Fs) + 1>(); }*/
+template <typename... Fs, typename... Gs>
+constexpr auto operator*(Multiplication<Fs...> lhs, Multiplication<Gs...> rhs) { return Multiplication<Fs..., Gs...>(lhs, rhs); }
 
 template <typename F, typename G>
 constexpr auto operator*(F lhs, G rhs) { return Multiplication<F, G>(lhs, rhs); }
@@ -170,37 +175,16 @@ constexpr auto operator*(F lhs, G rhs) { return Multiplication<F, G>(lhs, rhs); 
 
 
 
-/*
-template <typename F, typename G>
-constexpr auto operator*(F lhs, G rhs) -> typename std::enable_if_t<(is_one_or_zero<F>::value == false) &&
-                                                                    (is_one_or_zero<G>::value == false) &&
-                                                                    ((is_constant<F>::value && is_constant<G>::value) == false), Multiplication<F, G>> {
-    return Multiplication<F, G>(lhs, rhs);
-}
-
-
-template <typename... Fs, typename G>
-constexpr auto operator*(G lhs, Multiplication<Fs...> rhs) -> typename std::enable_if_t<is_one_or_zero<G>::value == false, Multiplication<Fs..., G>> { return rhs*lhs; }
-
-template <typename... Fs, typename G>
-constexpr auto operator*(Multiplication<Fs...> lhs, G rhs) -> typename std::enable_if_t<is_one_or_zero<G>::value == false, Multiplication<Fs..., G>> { return Multiplication<Fs..., G>(lhs, rhs); }
-
-*/
-
-
-
 template <typename F, typename G>
 constexpr auto operator/(F lhs, G rhs) { return Division<F, G>{lhs, rhs}; }
 
 
-template <typename A, typename B, typename C, typename D>
-constexpr auto operator==(Multiplication<A, B>, Multiplication<C, D>) { return (std::is_same_v<A, C> && std::is_same_v<B, D>) || (std::is_same_v<A, D> && std::is_same_v<B, C>); }
+template <typename... Fs, typename... Gs>
+constexpr auto operator==(Multiplication<Fs...> lhs, Multiplication<Gs...> rhs) { return std::is_same_v<decltype(lhs), decltype(rhs)>; }
 
 
 template <typename... Fs>
-constexpr auto d_dx(Multiplication<Fs...> y) {
-    return y.product_rule();
-}
+constexpr auto d_dx(Multiplication<Fs...> y) { return y.derivative(); }
 
 
 

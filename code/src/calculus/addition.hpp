@@ -2,7 +2,7 @@
 
 #include "composite.hpp"
 #include "multiply.hpp"
-#include "functions\constant.hpp"
+#include "functions/constant.hpp"
 
 namespace fields {
 namespace operators {
@@ -31,15 +31,74 @@ auto operator() (T x) { return f_(x) - g_(x); }
 
 */
 
-template <typename F, typename G>
+template <typename... Fs>
 class Addition {
  public:
+    constexpr Addition() = default;
+
+    template <typename... Ts, typename G>
+    constexpr Addition(G lhs, Addition<Ts...> rhs) : fs(std::tuple_cat(std::make_tuple(lhs), rhs.fs)) {
+    }
+
+    template <typename... Ts, typename G>
+    constexpr Addition(Addition<Ts...> lhs, G rhs) : fs(std::tuple_cat(lhs.fs, std::make_tuple(rhs))) {
+    }
+
+    template <typename... Ts, typename... Us>
+    constexpr Addition(Addition<Ts...> lhs, Addition<Us...> rhs) : fs(std::tuple_cat(lhs.fs, rhs.fs)) {
+    }
+
+    template <typename F, typename G>
+    constexpr Addition(F lhs, G rhs) : fs(std::make_tuple(lhs, rhs)) {
+    }
+
     template <typename T>
-    constexpr auto operator()(T x) const { return lhs(x) + rhs(x); }
- 
-     F lhs;
-     G rhs;
+    constexpr auto operator()(T x) const { return sum_impl(x, std::make_index_sequence<N>{}); }
+
+    template <std::size_t I>
+    constexpr auto& get() const { return std::get<I>(fs); }
+
+    template <std::size_t I, std::size_t J>
+    constexpr auto sub_sum() const {
+        static_assert((I <= N) && (J <= N) && (I <= J), "Expect following conditions on I, J: (I <= N) && (J <= N) && (I <= J)");
+        return subset_impl<I>(std::make_index_sequence<J - I>{});
+    }
+
+     constexpr auto derivative() const { return derivative_impl(std::make_index_sequence<N>{}); }
+
+ private:
+    template <typename... Gs> friend class Addition;
+
+    explicit constexpr Addition(std::tuple<Fs...> ts) : fs(ts) {
+    }
+
+    template <typename T, std::size_t... Is>
+    constexpr auto sum_impl(T x, std::index_sequence<Is...>) const { return (get<Is>()(x) + ...); }
+
+    template <std::size_t... Is>
+    constexpr auto derivative_impl(std::index_sequence<Is...>) const { return (d_dx(get<Is>()) + ...); }
+
+    template <std::size_t I, std::size_t... Is>
+    constexpr auto subset_impl(std::index_sequence<Is...>) const {
+        if constexpr (sizeof...(Is) == 1) {
+
+            return get<I>();
+
+        } else {
+
+            return Addition<std::decay_t<decltype(get<I + Is>())>...>(std::make_tuple(get<I + Is>()...));
+
+        }
+    }
+
+    std::tuple<Fs...> fs;
+
+    constexpr static auto N = sizeof...(Fs);
 };
+
+
+
+
 
 template <typename F, typename G>
 class Subtraction {
@@ -64,16 +123,28 @@ template <typename F, typename G>
 constexpr auto operator+(Multiplication<G, F> y, F f) { return (y.get<0>() + 1_c)*f; }
 
 template <typename F, typename... Gs>
-constexpr auto operator+(Multiplication<Gs..., F> y, F f) { return (Multiplication<Gs...>{} + 1_c)*f; }
+constexpr auto operator+(Multiplication<Gs..., F> y, F f) { return (y.sub_product<0, sizeof...(Gs)>() + 1_c)*f; }
 
 template <typename F, typename... Gs>
-constexpr auto operator+(F f, Multiplication<Gs..., F> y) { return y + f; }
+constexpr auto operator+(F f, Multiplication<Gs..., F> y) { return (1_c + y.sub_product<0, sizeof...(Gs)>())*f; }
 
 template <typename F, typename... Gs>
-constexpr auto operator+(Multiplication<Gs...> lhs, Multiplication<F, Gs...> rhs) { return (lhs + rhs.subset<1, sizeof...(Gs) + 1>())*rhs.get<0>(); }
+constexpr auto operator+(Multiplication<Gs...> lhs, Multiplication<F, Gs...> rhs) { return lhs*(1_c + rhs.get<0>()); }
+
+template <typename G, typename... Fs>
+constexpr auto operator+(Addition<Fs...> f, G g) { return Addition<Fs..., G>(f, g); }
+
+template <typename... Fs, typename G>
+constexpr auto operator+(G g, Addition<Fs...> f) { return Addition<G, Fs...>(g, f); }
+
+template <typename... Fs, typename... Gs>
+constexpr auto operator+(Addition<Fs...> lhs, Addition<Gs...> rhs) { return Addition<Fs..., Gs...>(lhs, rhs); }
 
 template <typename F, typename G>
-constexpr auto operator+(F lhs, G rhs) { return Addition<F, G>{lhs, rhs}; }
+constexpr auto operator+(F lhs, G rhs) { return Addition<F, G>(lhs, rhs); }
+
+
+
 
 
 
@@ -97,8 +168,8 @@ constexpr auto operator-(F lhs, G rhs) { return Subtraction<F, G>{lhs, rhs}; }
 
 
 
-template <typename F, typename G>
-constexpr auto d_dx(Addition<F, G> y) { return d_dx(y.lhs) + d_dx(y.rhs); }
+template <typename... Fs>
+constexpr auto d_dx(Addition<Fs...> y) { return y.derivative(); }
 
 template <typename F, typename G>
 constexpr auto d_dx(Subtraction<F, G> y) { return d_dx(y.lhs) - d_dx(y.rhs); }
