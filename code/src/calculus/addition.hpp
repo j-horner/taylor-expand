@@ -283,6 +283,28 @@ constexpr auto operator-(F, F) {
 }
 
 template <typename F, typename G>
+constexpr auto operator-(Addition<G, F> y, F) { return y.get<0>(); }
+
+template <typename F, typename G>
+constexpr auto operator-(F, Addition<G, F> y) { return -y.get<0>(); }
+
+template <typename F, typename... Gs>
+constexpr auto operator-(Addition<F, Gs...> y, F) { return y.sub_sum<1, sizeof...(Gs) + 1>(); }
+
+template <typename F, typename... Gs>
+constexpr auto operator-(F, Addition<F, Gs...> y) { return -y.sub_sum<1, sizeof...(Gs) + 1>(); }
+
+template <typename F, typename... Gs>
+constexpr auto operator-(Addition<F, Gs...> lhs, Addition<Gs...> rhs) { return lhs.get<0>(); }
+
+template <typename F, typename... Gs>
+constexpr auto operator-(Addition<Gs...> lhs, Addition<F, Gs...> rhs) { return -rhs.get<0>(); }
+
+
+static_assert(false, "Implement operator- with Subtraction<F, G>");
+
+
+template <typename F, typename G>
 constexpr auto operator-(Multiplication<G, F> y, F f) {
     using namespace literals;
     return (y.get<0>() - 1_c)*f;
@@ -318,27 +340,11 @@ constexpr auto operator-(Multiplication<F, Gs...> lhs, Multiplication<Gs...> rhs
     return (lhs.get<0>() - 1_c)*rhs;
 }
 
-template <typename F, typename G>
-constexpr auto operator-(Addition<G, F> y, F) { return y.get<0>(); }
 
-template <typename F, typename G>
-constexpr auto operator-(F, Addition<G, F> y) { return -y.get<0>(); }
 
-template <typename F, typename... Gs>
-constexpr auto operator-(Addition<F, Gs...> y, F) { return y.sub_sum<1, sizeof...(Gs) + 1>(); }
 
-template <typename F, typename... Gs>
-constexpr auto operator-(F, Addition<F, Gs...> y) { return -y.sub_sum<1, sizeof...(Gs) + 1>(); }
 
-template <typename F, typename... Gs>
-constexpr auto operator-(Addition<F, Gs...> lhs, Addition<Gs...> rhs) { return lhs.get<0>(); }
 
-template <typename F, typename... Gs>
-constexpr auto operator-(Addition<Gs...> lhs, Addition<F, Gs...> rhs) { return -rhs.get<0>(); }
-
-// -------------------------------------------------------------------------------------------------
-//                                  Subtraction Constructor
-// -------------------------------------------------------------------------------------------------
 
 template <typename F, typename G>
 constexpr auto operator-(F lhs, G rhs) { return Subtraction<F, G>{lhs, rhs}; }
