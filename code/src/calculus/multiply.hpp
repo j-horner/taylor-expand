@@ -192,6 +192,8 @@ constexpr auto operator/(F lhs, G rhs) { return Division<F, G>{lhs, rhs}; }
 template <typename... Fs, typename... Gs>
 constexpr auto operator==(Multiplication<Fs...> lhs, Multiplication<Gs...> rhs) { return std::is_same_v<decltype(lhs), decltype(rhs)>; }
 
+template <typename A, typename B, typename C, typename D>
+constexpr auto operator==(Division<A, B> lhs, Division<C, D> rhs) { return std::is_same_v<decltype(lhs), decltype(rhs)>; }
 
 template <typename... Fs>
 constexpr auto d_dx(Multiplication<Fs...> y) { return y.derivative(); }
