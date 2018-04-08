@@ -58,13 +58,16 @@ TEST_F(AdditionTest, Addition_Is_Correct) {
 
         static_assert(f + g == y, "(a + b) + (c + d) != a + b + c + d");
     }
-
+    
     static_assert(a + a == 2_c*a);
+
+    // operator+ with Addition<...>
     static_assert(b + a + a == b + 2_c*a);
     static_assert((b + a) + a == b + 2_c*a);
     static_assert(a + b + c + a == b + c + 2_c*a);
     static_assert((a + b + c) + a == b + c + 2_c*a);
 
+    // operator+ with Subtraction<...>
     static_assert(std::is_same_v<std::decay_t<decltype(b - a + a)>, std::decay_t<decltype(b)>>);
     static_assert(std::is_same_v<std::decay_t<decltype((b - a) + a)>, std::decay_t<decltype(b)>>);
     static_assert(a - b + a == 2_c*a - b);
@@ -77,6 +80,7 @@ TEST_F(AdditionTest, Addition_Is_Correct) {
     static_assert(c + (a - b) == (c + a) - b);
     static_assert((a - b) + (c - d) == (a + c) - (b + d));
 
+    // operator+ with Multiplication<...>
     static_assert(b*a + a == (b + 1_c)*a);
     static_assert(a + b*a == (1_c + b)*a);
     static_assert(a*b + a == a*(b + 1_c));
@@ -86,6 +90,7 @@ TEST_F(AdditionTest, Addition_Is_Correct) {
     static_assert(b*c + a*b*c == (1_c + a)*b*c);
     static_assert(a*b*c + b*c == (a + 1_c)*b*c);
 
+    // operator+ with Division<...>
     static_assert(a/b + a == a*(1_c + b)/b);
     static_assert(a + a/b == a*(b + 1_c)/b);
     static_assert(a/b + c == (a + b*c)/b);
@@ -97,7 +102,29 @@ TEST_F(AdditionTest, Subtraction_Is_Correct) {
     using namespace operators;
     using namespace literals;
 
-    static_assert((a - a) == 0);
+    static_assert(a - a == 0);
+    
+    // operator- with Addition<...>    
+    static_assert(std::is_same_v<std::decay_t<decltype(b + a - a)>, std::decay_t<decltype(b)>>);
+    static_assert(std::is_same_v<std::decay_t<decltype((b + a) - a)>, std::decay_t<decltype(b)>>);
+    static_assert(a - (b + a) == -b);
+    static_assert(a + b + c - a == b + c);
+    static_assert((a + b + c) - a == b + c);
+    static_assert(a - (a + b + c) == -(b + c));
+
+    // operator- with Subtraction<...>    
+    static_assert(b - a - a == b - 2_c*a);
+    static_assert((b - a) - a == b - 2_c*a);
+    static_assert(a - (b - a) == 2_c*a - b);
+    static_assert(a - b - a == -b);
+    static_assert((a - b) - a == -b);
+    static_assert(std::is_same_v<std::decay_t<decltype(a - (a - b))>, std::decay_t<decltype(b)>>);
+    static_assert(a - b - c == a - (b + c));
+    static_assert((a - b) - c == a - (b + c));
+    static_assert(a - (b - c) == (a + c) - b);
+    static_assert((a - b) - (c - d) == (a + d) - (b + c));
+    
+    // operator- with Multiplication<...>    
     static_assert(b*a - a == (b - 1_c)*a);
     static_assert(a - b*a == (1_c - b)*a);
     static_assert(a*b - a == a*(b - 1_c));
@@ -107,12 +134,12 @@ TEST_F(AdditionTest, Subtraction_Is_Correct) {
     static_assert(b*c - a*b*c == (1_c - a)*b*c);
     static_assert(a*b*c - b*c == (a - 1_c)*b*c);
 
-    static_assert(std::is_same_v<std::decay_t<decltype(b + a - a)>, std::decay_t<decltype(b)>>);
-    static_assert(std::is_same_v<std::decay_t<decltype((b + a) - a)>, std::decay_t<decltype(b)>>);
-    static_assert(a - (b + a) == -b);
-    static_assert(a + b + c - a == b + c);
-    static_assert((a + b + c) - a == b + c);
-    static_assert(a - (a + b + c) == -(b + c));
+    // operator- with Division<...>    
+    static_assert(a/b - a == a*(1_c - b)/b);
+    static_assert(a - a/b == a*(b - 1_c)/b);
+    static_assert(a/b - c == (a - b*c)/b);
+    static_assert(c - a/b == (c*b - a)/b);
+    static_assert(a/b - c/d == (a*d - b*c)/(b*d));
 }
 
 TEST_F(AdditionTest, Derivative_Is_Correct) {
@@ -126,6 +153,8 @@ TEST_F(AdditionTest, Derivative_Is_Correct) {
     static_assert(d_dx(a + b) == da_dx + db_dx, "d_dx(a + b) != da_dx + db_dx");
     static_assert(d_dx(a + b + c) == da_dx + db_dx + dc_dx, "d_dx(a + b + c) != da_dx + db_dx + dc_dx");
     static_assert(d_dx(a + b + c + d) == da_dx + db_dx + dc_dx + dd_dx, "d_dx(a + b + c + d) != da_dx + db_dx + dc_dx + dd_dx");
+
+    static_assert(d_dx(a - b) == da_dx - db_dx);
 }
 
 
