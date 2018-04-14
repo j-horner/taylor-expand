@@ -74,6 +74,18 @@ TEST_F(AdditionTest, Addition_Is_Correct) {
     static_assert((a - b) + a == 2_c*a - b);
     static_assert(a + a - b == 2_c*a - b);
     static_assert(a + (a - b) == 2_c*a - b);
+    static_assert((b + a) + (c - a) == b + c);
+    // static_assert(b + a + c - a == b + c);       // TODO     a stuck in the middle
+    static_assert((b - a) + (c + a) == b + c);
+    static_assert(b - a + c + a == b + c);
+    static_assert((a + b + c) + (d - a) == b + c + d);
+    static_assert(a + b + c + d - a == b + c + d);
+    static_assert((d - a) + (a + b + c) == d + b + c);
+    static_assert(d - a + a + b + c == d + b + c);
+    static_assert((b - a) + (a - c) == b - c);
+    static_assert(b - a + a - c == b - c);
+    static_assert((a - c) + (b - a) == b - c);
+    static_assert(a - c + b - a == b - c);
     static_assert(a - b + c == (a + c) - b);
     static_assert((a - b) + c == (a + c) - b);
     static_assert(c + a - b == (c + a) - b);
@@ -107,6 +119,12 @@ TEST_F(AdditionTest, Subtraction_Is_Correct) {
     // operator- with Addition<...>    
     static_assert(std::is_same_v<std::decay_t<decltype(b + a - a)>, std::decay_t<decltype(b)>>);
     static_assert(std::is_same_v<std::decay_t<decltype((b + a) - a)>, std::decay_t<decltype(b)>>);
+    static_assert(b + a - (a + c + d) == b - c - d);
+    static_assert((b + a) - (a + c + d) == b - c - d);
+    static_assert(a + c + d - (b + a) == c + d - b);
+    static_assert((a + c + d) - (b + a) == c + d - b);
+    static_assert(b + a - (c + a) == b - c);
+    static_assert((b + a) - (c + a) == b - c);
     static_assert(a - (b + a) == -b);
     static_assert(a + b + c - a == b + c);
     static_assert((a + b + c) - a == b + c);

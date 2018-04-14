@@ -115,30 +115,20 @@ class Multiplication {
     template <std::size_t I>
     constexpr auto product_rule_term() const {
         if constexpr (I == 0) {
-
             return d_dx(get<0>())*sub_product<1, N>();
-
         } else if constexpr (I == (N - 1)) {
-
             return sub_product<0, N - 1>()*d_dx(get<N - 1>());
-
         } else {
-
             return sub_product<0, I>()*d_dx(get<I>())*sub_product<I + 1, N>();
-
         }
     }
 
     template <std::size_t I, std::size_t... Is>
     constexpr auto subset_impl(std::index_sequence<Is...>) const {
         if constexpr (sizeof...(Is) == 1) {
-
             return get<I>();
-
         } else {
-
             return Multiplication<std::decay_t<decltype(get<I + Is>())>...>(std::make_tuple(get<I + Is>()...));
-
         }
     }
 
@@ -157,8 +147,6 @@ template <typename T>
 constexpr static auto is_not_multiplication = is_multiplication<T>::value == false;
 
 
-
-
 template <typename F, typename G>
 class Division {
 public:
@@ -167,39 +155,123 @@ public:
 
     F lhs;
     G rhs;
+
+    static_assert(is_not_constant<std::decay_t<G>>);    // dividing by constants is equivalent my multiplication by inverse so this should never be constructed
 };
 
+// -------------------------------------------------------------------------------------------------
+//                                      * operations
+// -------------------------------------------------------------------------------------------------
 
+// Constant - any multiplications with Constant on the right will be moved so it's on the left, also ensure all constants are moved to the front through multiplications
+
+// TODO - Multiplication<F, Constant> should never happen...
+template <Int A, Int B, Int C, Int D, typename F>
+constexpr auto operator*(Constant<A, B> c, Multiplication<F, Constant<C, D>> y) { return (c*y.get<1>())*y.get<0>(); }
+
+template <Int A, Int B, Int C, Int D, typename... Fs>
+constexpr auto operator*(Constant<A, B> c, Multiplication<Constant<C, D>, Fs...> y) { return (c*y.get<0>())*y.sub_product<1, sizeof...(Fs) + 1>(); }
+
+template <typename F, Int A, Int B, typename... Fs>
+constexpr auto operator*(F f, Multiplication<Constant<A, B>, Fs...> y) { return y.get<0>()*(f*y.sub_product<1, sizeof...(Fs) + 1>()); }
+
+
+// Multiplications with common factors
+// TODO - create a Power class for this
+
+// Multiplications with unrelated factors
+// Need to remove the case where G is constant as all constants are moved to the left-hand-side
 template <typename G, typename... Fs>
 constexpr auto operator*(Multiplication<Fs...> f, G g) -> detail::only_if_not_constant<G, Multiplication<Fs..., G>> { return Multiplication<Fs..., G>(f, g); }
 
+// Need to remove the case where G is 1 or 0 (these are trivial) but if we disable for ALL constants, expressions like 2*G will incorrectly call the generic operator* for F*G
 template <typename... Fs, typename G>
 constexpr auto operator*(G g, Multiplication<Fs...> f) -> detail::only_if_not_1_or_0<G, Multiplication<G, Fs...>> { return Multiplication<G, Fs...>(g, f); }
 
 template <typename... Fs, typename... Gs>
 constexpr auto operator*(Multiplication<Fs...> lhs, Multiplication<Gs...> rhs) { return Multiplication<Fs..., Gs...>(lhs, rhs); }
 
+// Division with common factors
+template <typename F, typename G, typename H>
+constexpr auto operator*(Multiplication<G, F> m, Division<H, F> d) { return m.get<0>()*d.lhs; }
+
+template <typename F, typename G, typename H>
+constexpr auto operator*(Division<H, F> d, Multiplication<G, F> m) { return d.lhs*m.get<0>(); }
+
+template <typename F, typename... Gs, typename H>
+constexpr auto operator*(Multiplication<F, Gs...> m, Division<H, F> d) { return m.sub_product<1, sizeof...(Gs) + 1>()*d.lhs; }
+
+template <typename F, typename... Gs, typename H>
+constexpr auto operator*(Division<H, F> d, Multiplication<F, Gs...> m) { return d.lhs*m.sub_product<1, sizeof...(Gs) + 1>(); }
+
+template <typename A, typename B, typename C>
+constexpr auto operator*(Division<A, B> lhs, Division<B, C> rhs) { return lhs.lhs/rhs.rhs; }
+
+template <typename A, typename B, typename C>
+constexpr auto operator*(Division<A, B> lhs, Division<C, A> rhs) { return rhs.lhs/lhs.rhs; }
+
+// Division with unrelated factors
+template <typename A, typename B, typename C, typename D>
+constexpr auto operator*(Division<A, B> lhs, Division<C, D> rhs) { return (lhs.lhs*rhs.lhs)/(lhs.rhs*rhs.rhs);}
+
+template <typename F, typename G, typename H>
+constexpr auto operator*(F f, Division<G, H> d) { return (f*d.lhs)/d.rhs; }
+
+template <typename F, typename G, typename H>
+constexpr auto operator*(Division<G, H> d, F f) { return (d.lhs*f)/d.rhs; }
+
+// Main Multiplication
 template <typename F, typename G>
 constexpr auto operator*(F lhs, G rhs) { return Multiplication<F, G>(lhs, rhs); }
 
 
+// -------------------------------------------------------------------------------------------------
+//                                      / operations
+// -------------------------------------------------------------------------------------------------
 
+// Multiplication with common factors
+template <typename F, typename G>
+constexpr auto operator/(Multiplication<G, F> m, F) { return m.get<0>(); }
+
+template <typename F, typename G>
+constexpr auto operator/(F, Multiplication<G, F> m) { return 1_c/m.get<0>(); }
+
+template <typename F, typename... Gs>
+constexpr auto operator/(Multiplication<F, Gs...> m, F) { return m.sub_product<1, sizeof...(Gs) + 1>(); }
+
+template <typename F, typename... Gs>
+constexpr auto operator/(F, Multiplication<F, Gs...> m) { return 1_c/m.sub_product<1, sizeof...(Gs) + 1>(); }
+
+template <typename F, typename... Gs>
+constexpr auto operator/(Multiplication<F, Gs...> lhs, Multiplication<Gs...>) { return lhs.get<0>(); }
+
+template <typename F, typename... Gs>
+constexpr auto operator/(Multiplication<Gs...>, Multiplication<F, Gs...> rhs) { return 1_c/rhs.get<0>(); }
+
+template <typename F, typename G, typename... Gs>
+constexpr auto operator/(Multiplication<G, F> lhs, Multiplication<F, Gs...> rhs) { return lhs.get<0>()/rhs.sub_product<1, sizeof...(Gs) + 1>(); }
+
+template <typename F, typename G, typename... Gs>
+constexpr auto operator/(Multiplication<F, Gs...> lhs, Multiplication<G, F> rhs) { return lhs.sub_product<1, sizeof...(Gs) + 1>()/rhs.get<0>(); }
+
+template <typename F, typename G, typename H>
+constexpr auto operator/(Multiplication<G, F> lhs, Multiplication<H, F> rhs) { return lhs.get<0>()/rhs.get<0>(); }
 
 template <typename F, typename G>
 constexpr auto operator/(F lhs, G rhs) { return Division<F, G>{lhs, rhs}; }
 
 
+// Comparison operators
 template <typename... Fs, typename... Gs>
 constexpr auto operator==(Multiplication<Fs...> lhs, Multiplication<Gs...> rhs) { return std::is_same_v<decltype(lhs), decltype(rhs)>; }
 
 template <typename A, typename B, typename C, typename D>
 constexpr auto operator==(Division<A, B> lhs, Division<C, D> rhs) { return std::is_same_v<decltype(lhs), decltype(rhs)>; }
 
+
+// Derivative operators
 template <typename... Fs>
 constexpr auto d_dx(Multiplication<Fs...> y) { return y.derivative(); }
-
-
-
 
 template <typename F, typename G>
 constexpr auto d_dx(Division<F, G> y) { return (d_dx(y.lhs)*y.rhs - y.lhs*d_dx(y.rhs))/(y.rhs*y.rhs); }

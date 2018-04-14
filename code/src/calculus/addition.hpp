@@ -1,7 +1,7 @@
 #pragma once
 
 #include "composite.hpp"
-#include "multiply.hpp"
+#include "multiplication.hpp"
 #include "functions/constant.hpp"
 
 namespace fields {
@@ -81,13 +81,9 @@ class Addition {
     template <std::size_t I, std::size_t... Is>
     constexpr auto subset_impl(std::index_sequence<Is...>) const {
         if constexpr (sizeof...(Is) == 1) {
-
             return get<I>();
-
         } else {
-
             return Addition<std::decay_t<decltype(get<I + Is>())>...>(std::make_tuple(get<I + Is>()...));
-
         }
     }
 
@@ -195,6 +191,24 @@ constexpr auto operator+(F f, Subtraction<F, G> y) {
     return 2_c*f - y.rhs;
 }
 
+template <typename F, typename G, typename H>
+constexpr auto operator+(Addition<G, F> lhs, Subtraction<H, F> rhs) { return lhs.get<0>() + rhs.lhs; }
+
+template <typename F, typename G, typename H>
+constexpr auto operator+(Subtraction<H, F> lhs, Addition<G, F> rhs) { return lhs.lhs + rhs.get<0>(); }
+
+template <typename F, typename G, typename... Gs>
+constexpr auto operator+(Addition<F, Gs...> lhs, Subtraction<G, F> rhs) { return lhs.sub_sum<1, sizeof...(Gs) + 1>() + rhs.lhs; }
+
+template <typename F, typename G, typename... Gs>
+constexpr auto operator+(Subtraction<G, F> lhs, Addition<F, Gs...> rhs) { return lhs.lhs + rhs.sub_sum<1, sizeof...(Gs) + 1>(); }
+
+template <typename F, typename G, typename H>
+constexpr auto operator+(Subtraction<G, F> lhs, Subtraction<F, H> rhs) { return lhs.lhs - rhs.rhs; }
+
+template <typename F, typename G, typename H>
+constexpr auto operator+(Subtraction<F, G> lhs, Subtraction<H, F> rhs) { return rhs.lhs - lhs.rhs; }
+
 // Subtractions with unrelated factors
 template <typename F, typename G, typename H>
 constexpr auto operator+(Subtraction<F, G> lhs, H rhs) { return (lhs.lhs + rhs) - lhs.rhs; }
@@ -301,6 +315,15 @@ constexpr auto operator-(Addition<F, Gs...> lhs, Addition<Gs...> rhs) { return l
 
 template <typename F, typename... Gs>
 constexpr auto operator-(Addition<Gs...> lhs, Addition<F, Gs...> rhs) { return -rhs.get<0>(); }
+
+template <typename F, typename G, typename... Gs>
+constexpr auto operator-(Addition<G, F> lhs, Addition<F, Gs...> rhs) { return lhs.get<0>() - rhs.sub_sum<1, sizeof...(Gs) + 1>(); }
+
+template <typename F, typename G, typename... Gs>
+constexpr auto operator-(Addition<F, Gs...> lhs, Addition<G, F> rhs) { return lhs.sub_sum<1, sizeof...(Gs) + 1>() - rhs.get<0>(); }
+
+template <typename F, typename G, typename H>
+constexpr auto operator-(Addition<G, F> lhs, Addition<H, F> rhs) { return lhs.get<0>() - rhs.get<0>(); }
 
 // Subtractions with common factors
 template <typename F, typename G>

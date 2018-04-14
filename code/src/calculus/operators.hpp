@@ -2,7 +2,7 @@
 
 #include "addition.hpp"
 #include "derivative.hpp"
-#include "multiply.hpp"
+#include "multiplication.hpp"
 #include "multiply_scalar.hpp"
 #include "shared_field.hpp"
 

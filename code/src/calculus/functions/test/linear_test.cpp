@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 
 #include "../../addition.hpp"
-#include "../../multiply.hpp"
+#include "../../multiplication.hpp"
 
 namespace fields {
 namespace test {
