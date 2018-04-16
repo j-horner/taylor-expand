@@ -257,6 +257,24 @@ constexpr auto operator/(Multiplication<F, Gs...> lhs, Multiplication<G, F> rhs)
 template <typename F, typename G, typename H>
 constexpr auto operator/(Multiplication<G, F> lhs, Multiplication<H, F> rhs) { return lhs.get<0>()/rhs.get<0>(); }
 
+// Division with Multiplication
+template <typename F, typename G, typename... Gs>
+constexpr auto operator/(Multiplication<Gs...> lhs, Division<F, G> rhs) { return lhs*rhs.rhs/rhs.lhs; }
+
+template <typename F, typename G, typename... Gs>
+constexpr auto operator/(Division<F, G> lhs, Multiplication<Gs...> rhs) { return lhs.lhs/(lhs.rhs*rhs); }
+
+// Division with common factors
+template <typename F, typename G, typename H>
+constexpr auto operator/(Division<F, G> lhs, Division<F, H> rhs) { return rhs.rhs/lhs.rhs; }
+
+template <typename F, typename G, typename H>
+constexpr auto operator/(Division<G, F> lhs, Division<H, F> rhs) { return lhs.lhs/rhs.lhs; }
+
+// Division with unrelated factors
+template <typename A, typename B, typename C, typename D>
+constexpr auto operator/(Division<A, B> lhs, Division<C, D> rhs) { return (lhs.lhs*rhs.rhs)/(lhs.rhs*rhs.lhs); }
+
 template <typename F, typename G>
 constexpr auto operator/(F lhs, G rhs) { return Division<F, G>{lhs, rhs}; }
 
