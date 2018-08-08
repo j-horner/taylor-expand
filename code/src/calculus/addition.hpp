@@ -7,30 +7,6 @@
 namespace fields {
 namespace operators {
 
-/*template <typename F, typename G>
-class Addition : public Composite<F, G> {
- public:
-    template <typename Lhs, typename Rhs>
-    Addition(Lhs&& l, Rhs&& r) : Composite<F, G>(std::forward<Lhs>(l), std::forward<Rhs>(r)) {
-    }
-
-    template <typename T>
-    auto operator() (T x) { return f_(x) + g_(x); }
-};
-
-template <typename F, typename G>
-class Subtraction : public Composite<F, G> {
-public:
-template <typename Lhs, typename Rhs>
-Subtraction(Lhs&& l, Rhs&& r) : Composite<F, G>(std::forward<Lhs>(l), std::forward<Rhs>(r)) {
-}
-
-template <typename T>
-auto operator() (T x) { return f_(x) - g_(x); }
-};
-
-*/
-
 template <typename... Fs>
 class Addition {
  public:
@@ -64,7 +40,8 @@ class Addition {
         return subset_impl<I>(std::make_index_sequence<J - I>{});
     }
 
-     constexpr auto derivative() const { return derivative_impl(std::make_index_sequence<N>{}); }
+     template <typename D>
+     constexpr auto derivative(D d) const { return derivative_impl(d, std::make_index_sequence<N>{}); }
 
  private:
     template <typename... Gs> friend class Addition;
@@ -75,8 +52,8 @@ class Addition {
     template <typename T, std::size_t... Is>
     constexpr auto sum_impl(T x, std::index_sequence<Is...>) const { return (get<Is>()(x) + ...); }
 
-    template <std::size_t... Is>
-    constexpr auto derivative_impl(std::index_sequence<Is...>) const { return (d_dx(get<Is>()) + ...); }
+    template <typename D, std::size_t... Is>
+    constexpr auto derivative_impl(D d, std::index_sequence<Is...>) const { return ((d(get<Is>())) + ...); }
 
     template <std::size_t I, std::size_t... Is>
     constexpr auto subset_impl(std::index_sequence<Is...>) const {
@@ -126,9 +103,9 @@ class Division;
 
 // Definition of number 2
 template <typename F>
-constexpr auto operator+(F, F) {
+constexpr auto operator+(F rhs, F) {
     using namespace literals;
-    return 2_c*F{};
+    return 2_c*rhs;
 }
 
 // Addiions with common factors
@@ -158,7 +135,7 @@ constexpr auto operator+(F f, Addition<F, Gs...> y) {
 
 // Additions with unrelated factors
 template <typename G, typename... Fs>
-constexpr auto operator+(Addition<Fs...> f, G g) { return Addition<Fs..., G>(f, g); }
+constexpr auto operator+(Addition<Fs...> f, G g) -> detail::only_if_not_1_or_0<G, Addition<Fs..., G>> { return Addition<Fs..., G>(f, g); }
 
 template <typename... Fs, typename G>
 constexpr auto operator+(G g, Addition<Fs...> f) { return Addition<G, Fs...>(g, f); }
@@ -427,7 +404,10 @@ constexpr auto operator==(Subtraction<A, B> lhs, Subtraction<C, D> rhs) { return
 
 // Derivative operators
 template <typename... Fs>
-constexpr auto d_dx(Addition<Fs...> y) { return y.derivative(); }
+constexpr auto d_dx(Addition<Fs...> y) { return y.derivative([] (auto f) { return d_dx(f); }); }
+
+template <typename... Fs>
+constexpr auto d_dt(Addition<Fs...> y) { return y.derivative([] (auto f) { return d_dt(f); }); }
 
 template <typename F, typename G>
 constexpr auto d_dx(Subtraction<F, G> y) { return d_dx(y.lhs) - d_dx(y.rhs); }

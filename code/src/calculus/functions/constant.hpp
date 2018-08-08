@@ -120,11 +120,18 @@ constexpr auto operator "" _c() {
 
 namespace operators {
 
-// TODO(jsh) : need to add comparison operators
-
 // all constants have 0 derivative
 template <Int A, Int B>
-constexpr auto d_dx(Constant<A, B>) { return Constant<0>{}; }
+constexpr auto d_dx(Constant<A, B>) {
+    using namespace literals;
+    return 0_c;
+}
+
+template <Int A, Int B>
+constexpr auto d_dt(Constant<A, B>) {
+    using namespace literals;
+    return 0_c;
+}
 
 // ---------------------------------------------------------------------------------
 // define compile time arthimetic i.e. +,-,*,/ operators for Constant<N, D>
@@ -215,9 +222,15 @@ constexpr auto operator*(F f, Constant<A, B> k) -> detail::only_if_not_constant<
 
 // anything multiplied by 0 is 0
 template <typename F>
-constexpr auto operator*(Constant<0>, F) -> detail::only_if_not_constant<F,  Constant<0>> { return 0_c; }
+constexpr auto operator*(Constant<0>, F) -> detail::only_if_not_constant<F,  Constant<0>> {
+    using namespace literals;
+    return 0_c;
+}
 template <typename F>
-constexpr auto operator*(F, Constant<0>) -> detail::only_if_not_constant<F,  Constant<0>> { return 0_c; }
+constexpr auto operator*(F, Constant<0>) -> detail::only_if_not_constant<F,  Constant<0>> {
+    using namespace literals;
+    return 0_c;
+}
 
 // multiplying by 1 does nothing
 template <typename F>

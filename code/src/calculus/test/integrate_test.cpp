@@ -1,9 +1,14 @@
-#include "../integrate.hpp"
+// #include "../integrate.hpp"
+#include "../taylor_series.hpp"
+
+#include "../multiplication.hpp"
 
 #include <gtest/gtest.h>
 
-#include <cmath>
 #include <iostream>
+#include <type_traits>
+
+#include <cmath>
 
 namespace fields {
 namespace test {
@@ -12,51 +17,63 @@ namespace test {
 class IntegrateTest : public ::testing::Test {
  protected:
 
-    // Compares the calculated numerical solution with the exact solution
-    template <typename Hamiltonian, typename Phi, typename Exact>
-    auto compare_with_exact_solution(const Hamiltonian& H, const Phi& phi_0, const Exact& phi_exact) {
-        // integrate up to various upper limits
-        for (auto T : integration_limits) {
-            auto phi = integrate(H, phi_0, 0.0, T);
+     template <typename T, typename U>
+     constexpr static auto is_same(T, U) {
+         static_assert(std::is_same_v<T, U>);
+     };
 
-            // evaluate phi at various points on the real axis
-            for (auto x : sample_range) {
-                // TODO : check this! do it better!
-                // each time step there is a relative error dt^4
-                // total steps = T / dt
-                // final relative error: T * dt ^3
-                ASSERT_NEAR(phi(x), phi_exact(x, T), T*tol*std::abs(phi_exact(x, T))) << "Results:\t" << T << "\t" << x << "\t" << phi(x) << "\t" << phi_exact(x, T) << std::endl;
-            }
-        }
+};
+
+TEST_F(IntegrateTest, TimeDerivativeIsCorrect) {
+    using namespace operators;
+    using namespace literals;
+    using namespace fields::detail;
+
+    constexpr auto check_trivial_derivatives = [] (auto phi) {
+        // true for any phi
+        is_same(d_dt<0>(phi), phi);
+        is_same(d_dt<1>(phi), d_dt(phi));
+    };
+
+    {
+        constexpr auto H = [] (auto phi) { return phi; };
+
+        constexpr auto phi = make_field(H);
+
+        check_trivial_derivatives(phi);
+
+        // only true because of the form of H
+        is_same(d_dt<1>(phi), phi);
+        is_same(d_dt<10>(phi), phi);
     }
 
-    // T : the time to integrate to from 0, need to compare numerical phi(x) ~ phi_exact(x, T)
-    // High values of T cause a stack overflow (manifesting as SEH exception) at the moment.
-    const std::vector<double> integration_limits{0.0, 1.0, 5.0, 10.0, 25.0};
+    {
+        constexpr auto H = [] (auto phi) { return phi + 5_c; };
 
-    // x : various points on the real axis to sample the solutions at
-    const std::vector<double> sample_range{-100.0, -50.0, -10.0, 0.0, 2.72, 3.14, 10.0, 50.0, 100.0};
+        constexpr auto phi = make_field(H);
 
-    constexpr static auto dt = 0.01;        // expected integration time step (needs to match that in integrate(...), need to make sure they match)
-    constexpr static auto tol = dt*dt*dt;   // expected relative error of the final result
-};
+        check_trivial_derivatives(phi);
 
-// --------------------------------------------
-// Initial conditions: phi(x, 0)
+        // only true because of the form of H
+        is_same(d_dt<1>(phi), phi + 5_c);
+        is_same(d_dt<10>(phi), phi + 5_c);
+    }
 
-// A quadratic
-static auto phi_poly = [a = 1.0, b = 2.0, c = 3.0] (double x) {
-    return a*x*x + b*x + c;
-};
 
-// An exponential
-static auto phi_exp = [a = 5.0, k = 3.0] (double x) {
-    return a*std::exp(k*x);
-};
+    {
+        constexpr auto H = [] (auto phi) { return 2_c*phi; };
 
-// --------------------------------------------
+        constexpr auto phi = make_field(H);
 
-TEST_F(IntegrateTest, ZeroHamiltonian) {
+        check_trivial_derivatives(phi);
+
+        // only true because of the form of H
+        is_same(d_dt<1>(phi), 2_c*phi);
+        is_same(d_dt<2>(phi), 4_c*phi);
+        is_same(d_dt<5>(phi), 32_c*phi);
+        is_same(d_dt<10>(phi), 1024_c*phi);
+    }
+
 }
 
 }   // test

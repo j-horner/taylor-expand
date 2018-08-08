@@ -4,22 +4,45 @@
 
 namespace fields {
 
+namespace detail {
 class X {
 public:
-    template <typename T>
-    constexpr auto operator()(T x) const { return x; }
+    template <typename R>
+    constexpr auto operator()(R x) const { return x; }
 };
 
-constexpr static auto x = X{};
+class T {
+ public:
+    template <typename R>
+    constexpr auto operator()(R t) const { return t; }
+};
+
+}   // detail
+
+constexpr static auto x = detail::X{};
+constexpr static auto t = detail::T{};
 
 namespace operators {
 
-constexpr auto d_dx(X) {
+constexpr auto d_dx(fields::detail::X) {
     using namespace literals;
     return 1_c;
 }
 
-static_assert(d_dx(x) == 1, "The derivative of 'x' is not 1.");
+constexpr auto d_dx(fields::detail::T) {
+    using namespace literals;
+    return 0_c;
+}
+
+constexpr auto d_dt(fields::detail::X) {
+    using namespace literals;
+    return 0_c;
+}
+
+constexpr auto d_dt(fields::detail::T) {
+    using namespace literals;
+    return 1_c;
+}
 
 }   // operators
 
