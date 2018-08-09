@@ -135,10 +135,10 @@ constexpr auto operator+(F f, Addition<F, Gs...> y) {
 
 // Additions with unrelated factors
 template <typename G, typename... Fs>
-constexpr auto operator+(Addition<Fs...> f, G g) -> detail::only_if_not_1_or_0<G, Addition<Fs..., G>> { return Addition<Fs..., G>(f, g); }
+constexpr auto operator+(Addition<Fs...> f, G g) -> detail::only_if_not_0<G, Addition<Fs..., G>> { return Addition<Fs..., G>(f, g); }
 
 template <typename... Fs, typename G>
-constexpr auto operator+(G g, Addition<Fs...> f) { return Addition<G, Fs...>(g, f); }
+constexpr auto operator+(G g, Addition<Fs...> f) -> detail::only_if_not_0<G, Addition<G, Fs...>> { return Addition<G, Fs...>(g, f); }
 
 template <typename... Fs, typename... Gs>
 constexpr auto operator+(Addition<Fs...> lhs, Addition<Gs...> rhs) { return Addition<Fs..., Gs...>(lhs, rhs); }
@@ -231,6 +231,11 @@ template <typename F, typename... Gs>
 constexpr auto operator+(Multiplication<F, Gs...> lhs, Multiplication<Gs...> rhs) {
     using namespace literals;
     return (lhs.get<0>() + 1_c)*rhs;
+}
+
+template <typename F, typename G, typename... Gs>
+constexpr auto operator+(Multiplication<F, Gs...> lhs, Multiplication<G, Gs...> rhs) -> detail::only_if_not_same<F, G, Multiplication<std::decay_t<decltype(lhs.get<0>() + rhs.get<0>())>, Gs...>> {
+    return (lhs.get<0>() + rhs.get<0>())*lhs.sub_product<1, sizeof...(Gs) + 1>();
 }
 
 // Division with common factors

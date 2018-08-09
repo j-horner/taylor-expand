@@ -195,9 +195,15 @@ constexpr auto operator^(Constant<A, B>, Constant<N>) { return (Constant<A>{}^Co
 
 namespace detail {
 
+template <typename F, typename G, typename H>
+using only_if_not_same = typename std::enable_if_t<(std::is_same_v<F, G> == false), H>;
+
 // If F != Constant<A, B>, use type T. Otherwise eliminate the corresponding function from potential overloads.
 template <typename F, typename T>
 using only_if_not_constant = typename std::enable_if_t<is_not_constant<F>, T>;
+
+template <typename F, typename T>
+using only_if_not_0 = only_if_not_same<F, Constant<0>, T>;
 
 template <typename F, typename T>
 using only_if_not_1_or_0 = typename std::enable_if_t<(std::is_same_v<F, Constant<0>> == false) && (std::is_same_v<F, Constant<1>> == false), T>;
@@ -245,7 +251,6 @@ constexpr auto operator/(Constant<0>, F) -> detail::only_if_not_constant<F, Cons
 // division by constant is equivalent to multiplying by inverse
 template <typename F, Int A, Int B>
 constexpr auto operator/(F f, Constant<A, B> c) { return (1_c/c)*f; }
-
 
 // ---------------------------------------------------------------------------------
 // comparison operators
