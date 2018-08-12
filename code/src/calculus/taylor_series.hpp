@@ -14,37 +14,28 @@ constexpr auto integrate(Hamiltonian&& H, Phi_0&& phi_0);
 
 namespace detail {
 
-template <typename Hamiltonian>
+template <typename Hamiltonian, Int N = 0>
 class Field {
  public:
-    constexpr explicit Field(Hamiltonian h) : H(std::move(h)) {
+    constexpr explicit Field(Hamiltonian h) : H_(std::move(h)) {
     }
 
-    constexpr auto time_derivative() const { return H(*this); }
+    template <Int M>
+    constexpr explicit Field(Field<Hamiltonian, M> phi) : H_(phi.H()) {
+    }
+
+    constexpr auto time_derivative() const { return d_dx<N>(H_(Field<Hamiltonian>{H_})); }
+
+    // remove and add template Field friend?
+    constexpr auto H() const { return H_; }
 
  private:
 
-    Hamiltonian H;
+    Hamiltonian H_;
 };
 
 template <typename Hamiltonian>
 constexpr auto make_field(Hamiltonian&& H) { return Field<Hamiltonian>(std::forward<Hamiltonian>(H)); }
-
-template <typename Hamiltonian>
-constexpr auto d_dt(Field<Hamiltonian> phi) { return phi.time_derivative(); }
-
-template <Int N, typename Hamiltonian>
-constexpr auto d_dt(Field<Hamiltonian> phi) {
-    static_assert(N >= 0);
-
-    if constexpr (N == 0) {
-        return phi;
-    } else if constexpr (N == 1) {
-        return d_dt(std::move(phi));
-    } else {
-        return d_dt(d_dt<N - 1>(std::move(phi)));
-    }
-}
 
 template <typename Hamiltonian, typename Phi_0, Int... Ns>
 constexpr auto taylor_series(Hamiltonian&& H, Phi_0&&, std::integer_sequence<Int, Ns...>) {
@@ -60,6 +51,29 @@ constexpr auto taylor_series(Hamiltonian&& H, Phi_0&&, std::integer_sequence<Int
 }
 
 }   // detail
+
+namespace operators {
+
+template <Int N = 1, typename Hamiltonian, Int M>
+constexpr auto d_dx(fields::detail::Field<Hamiltonian, M> phi) {
+    static_assert(N >= 0);
+    return Field<Hamiltonian, M + N>(std::move(phi));
+}
+
+template <Int N = 1, typename Hamiltonian, Int M>
+constexpr auto d_dt(fields::detail::Field<Hamiltonian, M> phi) {
+    static_assert(N >= 0);
+
+    if constexpr (N == 0) {
+        return phi;
+    } else if constexpr (N == 1) {
+        return phi.time_derivative();
+    } else {
+        return d_dt(d_dt<N - 1>(std::move(phi)));
+    }
+}
+
+}   // operators
 
 template <Int N, typename Hamiltonian, typename Phi_0>
 constexpr auto integrate(Hamiltonian&& H, Phi_0&& phi_0) {

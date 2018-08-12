@@ -1,19 +1,44 @@
 #include "../linear.hpp"
 
-#include <gtest/gtest.h>
-
 #include "../../addition.hpp"
 #include "../../multiplication.hpp"
+
+#include <gtest/gtest.h>
 
 namespace fields {
 namespace test {
 
 class LinearTest : public ::testing::Test {
+ protected:
+     template <typename T, typename U>
+     constexpr static auto is_same(T, U) {
+         static_assert(std::is_same_v<T, U>);
+     };
 };
 
 TEST_F(LinearTest, DerivativeIsCorrect) {
     using namespace operators;
     using namespace literals;
+
+    {
+        static_assert(d_dt(t) == 1);
+        static_assert(d_dt<1>(t) == 1);
+        static_assert(d_dt<2>(t) == 0);
+        static_assert(d_dt<30>(t) == 0);
+
+        static_assert(d_dx(x) == 1);
+        static_assert(d_dx<1>(x) == 1);
+        static_assert(d_dx<2>(x) == 0);
+        static_assert(d_dx<30>(x) == 0);
+
+        static_assert(d_dx(t) == 0);
+        static_assert(d_dt(x) == 0);
+        static_assert(d_dx<3>(t) == 0);
+        static_assert(d_dt<7>(x) == 0);
+
+        static_assert(d_dt<2>(x + t) == 0);
+        static_assert(d_dx<4>(x - t) == 0);
+    }
 
     {
         constexpr auto y = x;

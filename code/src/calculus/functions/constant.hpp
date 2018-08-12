@@ -43,27 +43,7 @@ class Constant : std::ratio<Num, Denom> {
     }
 };
 
-template <typename T>
-struct is_constant : std::false_type {};
-
-template <Int A, Int B>
-struct is_constant<Constant<A, B>> : std::true_type {};
-
-template <typename F>
-struct is_one_or_zero : std::false_type {};
-
-template <>
-struct is_one_or_zero<Constant<0>> : std::true_type {};
-
-template <>
-struct is_one_or_zero<Constant<1>> : std::true_type {};
-
-
-template <typename T>
-constexpr static auto is_not_constant = (is_constant<T>::value == false);
-
 namespace literals {
-
 namespace detail {
 
 template <char C>
@@ -117,20 +97,29 @@ constexpr auto operator "" _c() {
 
 }   // literals
 
-
 namespace operators {
 
 // all constants have 0 derivative
-template <Int A, Int B>
+template <Int D = 1, Int A, Int B>
 constexpr auto d_dx(Constant<A, B>) {
+    static_assert(D >= 0);
     using namespace literals;
-    return 0_c;
+    if constexpr (D == 0) {
+        return Constant<A, B>{};
+    } else {
+        return 0_c;
+    }
 }
 
-template <Int A, Int B>
+template <Int D = 1, Int A, Int B>
 constexpr auto d_dt(Constant<A, B>) {
+    static_assert(D >= 0);
     using namespace literals;
-    return 0_c;
+    if constexpr (D == 0) {
+        return Constant<A, B>{};
+    } else {
+        return 0_c;
+    }
 }
 
 // ---------------------------------------------------------------------------------
@@ -195,12 +184,21 @@ constexpr auto operator^(Constant<A, B>, Constant<N>) { return (Constant<A>{}^Co
 
 namespace detail {
 
+template <typename T>
+struct is_constant : std::false_type {};
+
+template <Int A, Int B>
+struct is_constant<Constant<A, B>> : std::true_type {};
+
+template <typename T>
+constexpr static auto is_not_constant = (is_constant<T>::value == false);
+
 template <typename F, typename G, typename H>
 using only_if_not_same = typename std::enable_if_t<(std::is_same_v<F, G> == false), H>;
 
 // If F != Constant<A, B>, use type T. Otherwise eliminate the corresponding function from potential overloads.
 template <typename F, typename T>
-using only_if_not_constant = typename std::enable_if_t<is_not_constant<F>, T>;
+using only_if_not_constant = typename std::enable_if_t<(is_constant<F>::value == false), T>;
 
 template <typename F, typename T>
 using only_if_not_0 = only_if_not_same<F, Constant<0>, T>;
@@ -264,4 +262,23 @@ template <Int A, Int B, typename T>
 constexpr auto operator==(T b, Constant<A, B> a) { return a == b; }
 
 }   // operators
+
+template <Int N>
+constexpr auto factorial(Constant<N>) {
+    static_assert(N >= 0);
+
+    if constexpr (N == 0) {
+        return 1_c;
+    } else {
+        /*constexpr static auto n =   [] {
+                                        auto m = 1;
+                                        for (auto i = 2; i <= N; ++i) {
+                                            m *= i;
+                                        }
+                                        return m;
+                                    }();*/
+        return Constant<util::factorial(N)>{};
+    }
+}
+
 }   // fields

@@ -18,15 +18,15 @@ struct D {
     template <typename T> constexpr auto operator()(T x) const { return x*x; }
 };
 
-struct dA_dx {};
-struct dB_dx {};
-struct dC_dx {};
-struct dD_dx {};
+template <Int N = 1> struct dA_dx {};
+template <Int N = 1> struct dB_dx {};
+template <Int N = 1> struct dC_dx {};
+template <Int N = 1> struct dD_dx {};
 
-constexpr auto d_dx(A) -> dA_dx { return {}; }
-constexpr auto d_dx(B) -> dB_dx { return {}; }
-constexpr auto d_dx(C) -> dC_dx { return {}; }
-constexpr auto d_dx(D) -> dD_dx { return {}; }
+template <Int N = 1> constexpr auto d_dx(A) { return dA_dx<N>{}; }
+template <Int N = 1> constexpr auto d_dx(B) { return dB_dx<N>{}; }
+template <Int N = 1> constexpr auto d_dx(C) { return dC_dx<N>{}; }
+template <Int N = 1> constexpr auto d_dx(D) { return dD_dx<N>{}; }
 
 class AdditionTest : public ::testing::Test {
  protected:
@@ -58,7 +58,7 @@ TEST_F(AdditionTest, Addition_Is_Correct) {
 
         static_assert(f + g == y, "(a + b) + (c + d) != a + b + c + d");
     }
-    
+
     static_assert(a + a == 2_c*a);
 
     // operator+ with Addition<...>
@@ -115,8 +115,8 @@ TEST_F(AdditionTest, Subtraction_Is_Correct) {
     using namespace literals;
 
     static_assert(a - a == 0);
-    
-    // operator- with Addition<...>    
+
+    // operator- with Addition<...>
     static_assert(std::is_same_v<std::decay_t<decltype(b + a - a)>, std::decay_t<decltype(b)>>);
     static_assert(std::is_same_v<std::decay_t<decltype((b + a) - a)>, std::decay_t<decltype(b)>>);
     static_assert(b + a - (a + c + d) == b - c - d);
@@ -130,7 +130,7 @@ TEST_F(AdditionTest, Subtraction_Is_Correct) {
     static_assert((a + b + c) - a == b + c);
     static_assert(a - (a + b + c) == -(b + c));
 
-    // operator- with Subtraction<...>    
+    // operator- with Subtraction<...>
     static_assert(b - a - a == b - 2_c*a);
     static_assert((b - a) - a == b - 2_c*a);
     static_assert(a - (b - a) == 2_c*a - b);
@@ -141,8 +141,8 @@ TEST_F(AdditionTest, Subtraction_Is_Correct) {
     static_assert((a - b) - c == a - (b + c));
     static_assert(a - (b - c) == (a + c) - b);
     static_assert((a - b) - (c - d) == (a + d) - (b + c));
-    
-    // operator- with Multiplication<...>    
+
+    // operator- with Multiplication<...>
     static_assert(b*a - a == (b - 1_c)*a);
     static_assert(a - b*a == (1_c - b)*a);
     static_assert(a*b - a == a*(b - 1_c));
@@ -152,7 +152,7 @@ TEST_F(AdditionTest, Subtraction_Is_Correct) {
     static_assert(b*c - a*b*c == (1_c - a)*b*c);
     static_assert(a*b*c - b*c == (a - 1_c)*b*c);
 
-    // operator- with Division<...>    
+    // operator- with Division<...>
     static_assert(a/b - a == a*(1_c - b)/b);
     static_assert(a - a/b == a*(b - 1_c)/b);
     static_assert(a/b - c == (a - b*c)/b);

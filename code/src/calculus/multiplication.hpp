@@ -101,7 +101,7 @@ public:
     F lhs;
     G rhs;
 
-    static_assert(is_not_constant<std::decay_t<G>>);    // dividing by constants is equivalent my multiplication by inverse so this should never be constructed
+    static_assert(detail::is_not_constant<std::decay_t<G>>);    // dividing by constants is equivalent my multiplication by inverse so this should never be constructed
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -233,14 +233,35 @@ constexpr auto operator==(Division<A, B> lhs, Division<C, D> rhs) { return std::
 
 
 // Derivative operators
-template <typename... Fs>
-constexpr auto d_dx(Multiplication<Fs...> y) { return y.derivative([] (auto f) { return d_dx(f); }); }
+template <Int D = 1, typename... Fs>
+constexpr auto d_dx(Multiplication<Fs...> y) {
+    if constexpr (D == 0) {
+        return y;
+    } else {
+        static_assert(D == 1, "Only first derivative of Multiplication is implemented.");
+        return y.derivative([] (auto f) { return d_dx(f); });
+    }
+}
 
-template <typename... Fs>
-constexpr auto d_dt(Multiplication<Fs...> y) { return y.derivative([] (auto f) { return d_dt(f); }); }
+template <Int D = 1, typename... Fs>
+constexpr auto d_dt(Multiplication<Fs...> y) {
+    if constexpr (D == 0) {
+        return y;
+    } else {
+        static_assert(D == 1, "Only first derivative of Multiplication is implemented.");
+        return y.derivative([] (auto f) { return d_dt(f); });
+    }
+}
 
-template <typename F, typename G>
-constexpr auto d_dx(Division<F, G> y) { return (d_dx(y.lhs)*y.rhs - y.lhs*d_dx(y.rhs))/(y.rhs*y.rhs); }
+template <int D = 1, typename F, typename G>
+constexpr auto d_dx(Division<F, G> y) {
+    if constexpr (D == 0) {
+        return y;
+    } else {
+        static_assert(D == 1, "Only first derivative of Division is implemented.");
+        return (d_dx(y.lhs)*y.rhs - y.lhs*d_dx(y.rhs))/(y.rhs*y.rhs);
+    }
+}
 
 }	// operators
 

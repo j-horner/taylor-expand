@@ -103,7 +103,7 @@ class Division;
 
 // Definition of number 2
 template <typename F>
-constexpr auto operator+(F rhs, F) {
+constexpr auto operator+(F rhs, F) -> detail::only_if_not_constant<F, decltype(Constant<2>{}*rhs)> {
     using namespace literals;
     return 2_c*rhs;
 }
@@ -274,7 +274,7 @@ constexpr auto operator+(F lhs, G rhs) { return Addition<F, G>(lhs, rhs); }
 
 // Definition of 0
 template <typename F>
-constexpr auto operator-(F, F) {
+constexpr auto operator-(F, F) -> detail::only_if_not_constant<F, Constant<0>> {
     using namespace literals;
     return 0_c;
 }
@@ -408,14 +408,19 @@ template <typename A, typename B, typename C, typename D>
 constexpr auto operator==(Subtraction<A, B> lhs, Subtraction<C, D> rhs) { return std::is_same_v<decltype(lhs), decltype(rhs)>; }
 
 // Derivative operators
-template <typename... Fs>
-constexpr auto d_dx(Addition<Fs...> y) { return y.derivative([] (auto f) { return d_dx(f); }); }
+template <Int D = 1, typename... Fs>
+constexpr auto d_dx(Addition<Fs...> y) {
+    return y.derivative([] (auto f) { return d_dx<D>(f); });
+}
 
-template <typename... Fs>
-constexpr auto d_dt(Addition<Fs...> y) { return y.derivative([] (auto f) { return d_dt(f); }); }
+template <Int D = 1, typename... Fs>
+constexpr auto d_dt(Addition<Fs...> y) { return y.derivative([] (auto f) { return d_dt<D>(f); }); }
 
-template <typename F, typename G>
-constexpr auto d_dx(Subtraction<F, G> y) { return d_dx(y.lhs) - d_dx(y.rhs); }
+template <Int D = 1, typename F, typename G>
+constexpr auto d_dx(Subtraction<F, G> y) { return d_dx<D>(y.lhs) - d_dx<D>(y.rhs); }
+
+template <Int D = 1, typename F, typename G>
+constexpr auto d_dt(Subtraction<F, G> y) { return d_dt<D>(y.lhs) - d_dt<D>(y.rhs); }
 
 }	// operators
 }	// fields
