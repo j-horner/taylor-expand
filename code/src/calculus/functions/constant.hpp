@@ -130,10 +130,22 @@ constexpr auto operator+(Constant<A, B>, Constant<C, D>) {
     return Constant<R::num, R::den>{};
 }
 
+template <Int A, Int B>
+constexpr auto operator+(Constant<A, B> lhs, Constant<A, B>) {
+    using namespace literals;
+    return 2_c*lhs;
+}
+
 template <Int A, Int B, Int C, Int D>
 constexpr auto operator-(Constant<A, B>, Constant<C, D>) {
     using R = std::ratio_subtract<std::ratio<A, B>, std::ratio<C, D>>;
     return Constant<R::num, R::den>{};
+}
+
+template <Int A, Int B>
+constexpr auto operator-(Constant<A, B>, Constant<A, B>) {
+    using namespace literals;
+    return 0_c;
 }
 
 template <Int A, Int B, Int C, Int D>
@@ -190,61 +202,7 @@ struct is_constant : std::false_type {};
 template <Int A, Int B>
 struct is_constant<Constant<A, B>> : std::true_type {};
 
-template <typename T>
-constexpr static auto is_not_constant = (is_constant<T>::value == false);
-
-template <typename F, typename G, typename H>
-using only_if_not_same = typename std::enable_if_t<(std::is_same_v<F, G> == false), H>;
-
-// If F != Constant<A, B>, use type T. Otherwise eliminate the corresponding function from potential overloads.
-template <typename F, typename T>
-using only_if_not_constant = typename std::enable_if_t<(is_constant<F>::value == false), T>;
-
-template <typename F, typename T>
-using only_if_not_0 = only_if_not_same<F, Constant<0>, T>;
-
-template <typename F, typename T>
-using only_if_not_1_or_0 = typename std::enable_if_t<(std::is_same_v<F, Constant<0>> == false) && (std::is_same_v<F, Constant<1>> == false), T>;
-
 }
-
-// adding 0 to something does nothing
-template <typename F>
-constexpr auto operator+(F f, Constant<0>) -> detail::only_if_not_constant<F, F> { return f; }
-template <typename F>
-constexpr auto operator+(Constant<0>, F f) -> detail::only_if_not_constant<F, F> { return f; }
-
-// subtracting 0 to something does nothing
-template <typename F>
-constexpr auto operator-(F f, Constant<0>) -> detail::only_if_not_constant<F, F> { return f; }
-template <typename F>
-constexpr auto operator-(Constant<0>, F f) -> detail::only_if_not_constant<F, decltype(-f)> { return -f; }
-
-// Ensure Constant is always on the left
-template <Int A, Int B, typename F>
-constexpr auto operator*(F f, Constant<A, B> k) -> detail::only_if_not_constant<F,  decltype(k*f)> { return k*f;}
-
-// anything multiplied by 0 is 0
-template <typename F>
-constexpr auto operator*(Constant<0>, F) -> detail::only_if_not_constant<F,  Constant<0>> {
-    using namespace literals;
-    return 0_c;
-}
-template <typename F>
-constexpr auto operator*(F, Constant<0>) -> detail::only_if_not_constant<F,  Constant<0>> {
-    using namespace literals;
-    return 0_c;
-}
-
-// multiplying by 1 does nothing
-template <typename F>
-constexpr auto operator*(Constant<1>, F f) -> detail::only_if_not_constant<F, F> { return f; }
-template <typename F>
-constexpr auto operator*(F f, Constant<1>) -> detail::only_if_not_constant<F, F> { return f; }
-
-// 0 divided by anything is 0 (apart from 0!) (F is constant will cause a substitution failure)
-template <typename F>
-constexpr auto operator/(Constant<0>, F) -> detail::only_if_not_constant<F, Constant<0>> { return 0_c; }
 
 // division by constant is equivalent to multiplying by inverse
 template <typename F, Int A, Int B>
@@ -265,18 +223,11 @@ constexpr auto operator==(T b, Constant<A, B> a) { return a == b; }
 
 template <Int N>
 constexpr auto factorial(Constant<N>) {
-    static_assert(N >= 0);
+    static_assert(N >= 0, "Can only take factorial of positive integers.");
 
     if constexpr (N == 0) {
         return 1_c;
     } else {
-        /*constexpr static auto n =   [] {
-                                        auto m = 1;
-                                        for (auto i = 2; i <= N; ++i) {
-                                            m *= i;
-                                        }
-                                        return m;
-                                    }();*/
         return Constant<util::factorial(N)>{};
     }
 }

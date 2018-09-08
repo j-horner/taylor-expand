@@ -94,14 +94,14 @@ constexpr static auto is_not_multiplication = is_multiplication<T>::value == fal
 
 template <typename F, typename G>
 class Division {
-public:
+ public:
     template <typename T>
     constexpr auto operator()(T x) const { return lhs(x)/rhs(x); }
 
     F lhs;
     G rhs;
 
-    static_assert(detail::is_not_constant<std::decay_t<G>>);    // dividing by constants is equivalent my multiplication by inverse so this should never be constructed
+    static_assert(detail::is_constant<std::decay_t<G>>::value == false, "Division by constants should never occur as they can always be cast as a multiplication.");
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -127,11 +127,26 @@ constexpr auto operator*(F f, Multiplication<Constant<A, B>, Fs...> y) { return 
 // Multiplications with unrelated factors
 // Need to remove the case where G is constant as all constants are moved to the left-hand-side
 template <typename G, typename... Fs>
-constexpr auto operator*(Multiplication<Fs...> f, G g) -> detail::only_if_not_constant<G, Multiplication<Fs..., G>> { return Multiplication<Fs..., G>(f, g); }
+constexpr auto operator*(Multiplication<Fs...> f, G g) {
+    if constexpr (detail::is_constant<G>::value) {
+        return g*f;
+    } else {
+        return Multiplication<Fs..., G>(f, g);
+    }
+}
 
-// Need to remove the case where G is 1 or 0 (these are trivial) but if we disable for ALL constants, expressions like 2*G will incorrectly call the generic operator* for F*G
 template <typename... Fs, typename G>
-constexpr auto operator*(G g, Multiplication<Fs...> f) -> detail::only_if_not_1_or_0<G, Multiplication<G, Fs...>> { return Multiplication<G, Fs...>(g, f); }
+constexpr auto operator*(G g, Multiplication<Fs...> f) {
+    static_assert(sizeof(f) >= 0, "Check to silence unused parameter...");
+
+    if constexpr (std::is_same_v<decltype(g), Constant<0>>) {
+        return 0_c;
+    } else if constexpr (std::is_same_v<decltype(g), Constant<1>>) {
+        return f;
+    } else {
+        return Multiplication<G, Fs...>(g, f);
+    }
+}
 
 template <typename... Fs, typename... Gs>
 constexpr auto operator*(Multiplication<Fs...> lhs, Multiplication<Gs...> rhs) { return Multiplication<Fs..., Gs...>(lhs, rhs); }
@@ -167,7 +182,20 @@ constexpr auto operator*(Division<G, H> d, F f) { return (d.lhs*f)/d.rhs; }
 
 // Main Multiplication
 template <typename F, typename G>
-constexpr auto operator*(F lhs, G rhs) { return Multiplication<F, G>(lhs, rhs); }
+constexpr auto operator*(F lhs, G rhs) {
+    if constexpr (std::is_same_v<decltype(lhs), Constant<0>> || std::is_same_v<decltype(rhs), Constant<0>>) {
+        using namespace literals;
+        return 0_c;
+    } else if constexpr (std::is_same_v<decltype(lhs), Constant<1>>) {
+        return rhs;
+    } else if constexpr (std::is_same_v<decltype(rhs), Constant<1>>) {
+        return lhs;
+    } else if constexpr (detail::is_constant<G>::value) {
+        return rhs*lhs;
+    } else {
+        return Multiplication<F, G>(lhs, rhs);
+    }
+}
 
 
 // -------------------------------------------------------------------------------------------------
@@ -221,7 +249,16 @@ template <typename A, typename B, typename C, typename D>
 constexpr auto operator/(Division<A, B> lhs, Division<C, D> rhs) { return (lhs.lhs*rhs.rhs)/(lhs.rhs*rhs.lhs); }
 
 template <typename F, typename G>
-constexpr auto operator/(F lhs, G rhs) { return Division<F, G>{lhs, rhs}; }
+constexpr auto operator/(F lhs, G rhs) {
+    static_assert(false == std::is_same_v<decltype(rhs), Constant<0>>, "Cannot divide by 0!");
+
+    if constexpr (std::is_same_v<decltype(lhs), Constant<0>>) {
+        using namespace literals;
+        return 0_c;
+    } else {
+        return Division<F, G>{lhs, rhs};
+    }
+}
 
 
 // Comparison operators

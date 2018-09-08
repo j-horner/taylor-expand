@@ -158,6 +158,7 @@ TEST_F(IntegrateTest, TimeDerivativeIsCorrect) {
         is_same(d_dt<5>(phi), d_dx<10>(phi));
         is_same(d_dt<10>(phi), d_dx<20>(phi));
         is_same(d_dt<20>(phi), d_dx<40>(phi));
+        // is_same(d_dt<100>(phi), d_dx<200>(phi));     // compiles but takes a few seconds
     }
 
 }
