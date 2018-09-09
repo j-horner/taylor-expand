@@ -42,15 +42,15 @@ TEST_F(ConstantTest, LiteralTest) {
 
 
     static_assert(0_c + 0_c + 0_c + 0_c == 0_c, "Sum of 0 is not 0");
-	static_assert(0_c * 0_c * 0_c * 0_c == 0_c, "Product of 0 is not 0");
+    static_assert(0_c * 0_c * 0_c * 0_c == 0_c, "Product of 0 is not 0");
 
-	static_assert(10_c * 0_c == 0_c, "10*0 != 0");
-	static_assert(52_c * 1_c == 52_c, "52*1 != 52");
+    static_assert(10_c * 0_c == 0_c, "10*0 != 0");
+    static_assert(52_c * 1_c == 52_c, "52*1 != 52");
 
-	static_assert((3_c * 10_c + 46_c - 5_c / 6_c) / (2_c ^ 4_c) == 451_c/96_c, "Complicated arthimetic expression incorrect!");		// 451/96 = 11*41/96 = 11*41/(3*32)
+    static_assert((3_c * 10_c + 46_c - 5_c / 6_c) / (2_c ^ 4_c) == 451_c/96_c, "Complicated arthimetic expression incorrect!");     // 451/96 = 11*41/96 = 11*41/(3*32)
 
-	static_assert(5_c == 5, "5 is not 5!");
-	static_assert(0.5 == 0.5_c, "0.5 is not 0.5!");
+    static_assert(5_c == 5, "5 is not 5!");
+    static_assert(0.5 == 0.5_c, "0.5 is not 0.5!");
 
     // constexpr auto undef = 0_c/0_c;     // should not compile!
 }

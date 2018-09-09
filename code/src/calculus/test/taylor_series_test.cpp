@@ -1,8 +1,9 @@
-// #include "../integrate.hpp"
 #include "../taylor_series.hpp"
 
-#include "../functions/linear.hpp"
 #include "../multiplication.hpp"
+#include "../comparison.hpp"
+#include "../functions/linear.hpp"
+
 
 #include <gtest/gtest.h>
 

@@ -1,5 +1,10 @@
 #pragma once
 
+#include "power.hpp"
+
+#include "../addition.hpp"
+#include "../comparison.hpp"
+
 #include "../../util/util.hpp"
 
 // C++ headers
@@ -19,6 +24,14 @@ using Int = std::intmax_t;
 template <Int Num, Int Denom = 1>
 class Constant : std::ratio<Num, Denom> {
  public:
+    Constant() = default;
+
+    template <Int A, Int B>
+    explicit constexpr Constant(Constant<A, B>) {
+        static_assert((A == Num) && (B == Denom));
+    }
+
+
     constexpr static auto num = std::ratio<Num, Denom>::num;
     constexpr static auto den = std::ratio<Num, Denom>::den;
 
@@ -42,6 +55,18 @@ class Constant : std::ratio<Num, Denom> {
         }
     }
 };
+
+template <Int N>
+constexpr auto factorial(Constant<N>) {
+    static_assert(N >= 0, "Can only take factorial of positive integers.");
+
+    if constexpr (N == 0) {
+        return 1_c;
+    } else {
+        return Constant<util::factorial(N)>{};
+    }
+}
+
 
 namespace literals {
 namespace detail {
@@ -91,109 +116,11 @@ constexpr auto literal_impl() {
 }   //detail
 
 template <char... Cs>
-constexpr auto operator "" _c() {
-    return detail::literal_impl<Cs...>();
-}
+constexpr auto operator "" _c() { return detail::literal_impl<Cs...>(); }
 
 }   // literals
 
 namespace operators {
-
-// all constants have 0 derivative
-template <Int D = 1, Int A, Int B>
-constexpr auto d_dx(Constant<A, B>) {
-    static_assert(D >= 0);
-    using namespace literals;
-    if constexpr (D == 0) {
-        return Constant<A, B>{};
-    } else {
-        return 0_c;
-    }
-}
-
-template <Int D = 1, Int A, Int B>
-constexpr auto d_dt(Constant<A, B>) {
-    static_assert(D >= 0);
-    using namespace literals;
-    if constexpr (D == 0) {
-        return Constant<A, B>{};
-    } else {
-        return 0_c;
-    }
-}
-
-// ---------------------------------------------------------------------------------
-// define compile time arthimetic i.e. +,-,*,/ operators for Constant<N, D>
-template <Int A, Int B, Int C, Int D>
-constexpr auto operator+(Constant<A, B>, Constant<C, D>) {
-    using R = std::ratio_add<std::ratio<A, B>, std::ratio<C, D>>;
-    return Constant<R::num, R::den>{};
-}
-
-template <Int A, Int B>
-constexpr auto operator+(Constant<A, B> lhs, Constant<A, B>) {
-    using namespace literals;
-    return 2_c*lhs;
-}
-
-template <Int A, Int B, Int C, Int D>
-constexpr auto operator-(Constant<A, B>, Constant<C, D>) {
-    using R = std::ratio_subtract<std::ratio<A, B>, std::ratio<C, D>>;
-    return Constant<R::num, R::den>{};
-}
-
-template <Int A, Int B>
-constexpr auto operator-(Constant<A, B>, Constant<A, B>) {
-    using namespace literals;
-    return 0_c;
-}
-
-template <Int A, Int B, Int C, Int D>
-constexpr auto operator*(Constant<A, B>, Constant<C, D>) {
-    using R = std::ratio_multiply<std::ratio<A, B>, std::ratio<C, D>>;
-    return Constant<R::num, R::den>{};
-}
-
-template <Int A, Int B, Int C, Int D>
-constexpr auto operator/(Constant<A, B>, Constant<C, D>) {
-    static_assert(C != 0, "Attempting to divide by 0!");
-    using R = std::ratio_divide<std::ratio<A, B>, std::ratio<C, D>>;
-    return Constant<R::num, R::den>{};
-}
-// ---------------------------------------------------------------------------------
-
-// -f = (-1)*f
-template <Int A, Int B>
-constexpr auto operator-(Constant<A, B>) { return Constant<-A, B>{}; }
-
-template <typename F>
-constexpr auto operator-(F f) {
-    using namespace literals;
-    return -1_c*f;
-}
-
-// ---------------------------------------------------------------------------------
-// power operator with integers, if rational powers are needed do it later
-template <Int A, Int N>
-constexpr auto operator^(Constant<A>, Constant<N>) {
-    if constexpr (0 == N) {
-        // anything to power 0 is 1
-        return Constant<1>{};
-    } else if constexpr (0 > N) {
-        // negative powers mean divide
-        return Constant<1>{} / (Constant<A>{}^Constant<-N>{});
-    } else {
-        // standard recursive power definition, could probably be better
-        constexpr auto A_N = util::pow(A, N);
-
-        return Constant<A_N>{};
-    }
-}
-
-template <Int A, Int B, Int N>
-constexpr auto operator^(Constant<A, B>, Constant<N>) { return (Constant<A>{}^Constant<N>{}) / (Constant<B>{}^Constant<N>{}); }
-// ---------------------------------------------------------------------------------
-
 namespace detail {
 
 template <typename T>
@@ -202,34 +129,7 @@ struct is_constant : std::false_type {};
 template <Int A, Int B>
 struct is_constant<Constant<A, B>> : std::true_type {};
 
-}
-
-// division by constant is equivalent to multiplying by inverse
-template <typename F, Int A, Int B>
-constexpr auto operator/(F f, Constant<A, B> c) { return (1_c/c)*f; }
-
-// ---------------------------------------------------------------------------------
-// comparison operators
-template <Int A, Int B, Int C, Int D>
-constexpr auto operator==(Constant<A, B> a, Constant<C, D> b) { return std::is_same_v<decltype(a), decltype(b)>;  }
-
-template <Int A, Int B, typename T>
-constexpr auto operator==(Constant<A, B> a, T b) { return static_cast<T>(a) == b; }
-
-template <Int A, Int B, typename T>
-constexpr auto operator==(T b, Constant<A, B> a) { return a == b; }
-
+}   //detail
 }   // operators
-
-template <Int N>
-constexpr auto factorial(Constant<N>) {
-    static_assert(N >= 0, "Can only take factorial of positive integers.");
-
-    if constexpr (N == 0) {
-        return 1_c;
-    } else {
-        return Constant<util::factorial(N)>{};
-    }
-}
 
 }   // fields

@@ -1,3 +1,3 @@
-add_gtest_test(calculus_test integrate_test.cpp)
+add_gtest_test(taylor_series_test taylor_series_test.cpp)
 add_gtest_test(addition_test addition_test.cpp)
 add_gtest_test(multiplication_test multiplication_test.cpp)

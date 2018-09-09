@@ -2,6 +2,7 @@
 
 #include "../../addition.hpp"
 #include "../../multiplication.hpp"
+#include "../../comparison.hpp"
 
 #include <gtest/gtest.h>
 

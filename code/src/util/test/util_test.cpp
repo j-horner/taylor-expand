@@ -10,7 +10,7 @@ class UtilTest : public ::testing::Test {
 
 };
 
-TEST_F(UtilTest, PowTestCompileTime) {
+TEST_F(UtilTest, PowerTest) {
     static_assert(util::pow(2, 3) == 8, "Pow is broken!");
 }
 

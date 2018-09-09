@@ -1,112 +1,157 @@
 #pragma once
 
-#include "addition.hpp"
-#include "multiply_scalar.hpp"
-#include "shared_field.hpp"
+#include "functions/constant.hpp"
+#include "functions/linear.hpp"
 
-#include "../util/util.hpp"
+#include "addition.hpp"
+#include "subtraction.hpp"
+#include "multiplication.hpp"
+#include "division.hpp"
+
+// C headers
+#include <cstdint>
 
 namespace fields {
+
+using Int = std::intmax_t;
+
+
+namespace detail {
+
+class X;
+class T;
+
+} // detail
+
+
+
 namespace operators {
-/*
-template <typename F, int N = 1>
-class Derivative {
- public:
-    template <typename G>
-    explicit Derivative(G&& g) : f_(std::forward<G>(g)) {
+
+// all constants have 0 derivative
+template <Int D = 1, Int A, Int B>
+constexpr auto d_dx(Constant<A, B>) {
+    static_assert(D >= 0);
+    using namespace literals;
+    if constexpr (D == 0) {
+        return Constant<A, B>{};
+    } else {
+        return 0_c;
     }
+}
 
-    auto operator()(double x) const {
-        static_assert(util::binomial(N, 0) == 1, "Binomial(N, 0) is broken!");
-        static_assert(util::binomial(N, 1) == N, "Binomial(N, 1) is broken!");
-
-        constexpr auto dx_2N = util::pow(dx_2, N);      // 1 / (2*dx) ^ N
-        return dx_2N*sum_terms<N>(x);
+template <Int D = 1, Int A, Int B>
+constexpr auto d_dt(Constant<A, B>) {
+    static_assert(D >= 0);
+    using namespace literals;
+    if constexpr (D == 0) {
+        return Constant<A, B>{};
+    } else {
+        return 0_c;
     }
+}
 
-    auto f() const { return f_; }
+template <Int D = 1>
+constexpr auto d_dx(fields::detail::X) {
+    static_assert(D >= 0);
 
- private:
-    template <int K>
-    auto sum_terms(double x) const {
-        return term<K>(x) + sum_terms<K - 1>(x);
+    using namespace literals;
+    if constexpr (D == 0) {
+        return x;
+    } else if constexpr (D == 1) {
+        return 1_c;
+    } else {
+        return 0_c;
     }
+}
 
-    template <>
-    auto sum_terms<0>(double x) const {
-        return term<0>(x);
+template <Int D = 1>
+constexpr auto d_dx(fields::detail::T) {
+    using namespace literals;
+    if constexpr (D == 0) {
+        return t;
+    } else {
+        return 0_c;
     }
+}
 
-    template <int K>
-    auto term(double x) const {
-        constexpr auto h = (N - 2 * K)*dx;
-        constexpr auto coeff = util::pow(-1, K)*util::binomial(N, K);
-        return coeff*f_.func()(x + h);
+template <Int D = 1>
+constexpr auto d_dt(fields::detail::X) {
+    using namespace literals;
+    if constexpr (D == 0) {
+        return x;
+    } else {
+        return 0_c;
     }
-
-    SharedField<F> f_;
-
-    constexpr static auto dx = 0.1;
-    constexpr static auto dx_2 = 0.5 / dx;
-};
-
-
-template <typename F>
-auto d_dx(F&& f) {
-    return Derivative<F>(std::forward<F>(f));
 }
 
-template <int N, typename F>
-auto d_dx(F&& f) {
-    return Derivative<F, N>(std::forward<F>(f));
+template <Int D = 1>
+constexpr auto d_dt(fields::detail::T) {
+    static_assert(D >= 0);
+
+    using namespace literals;
+    if constexpr (D == 0) {
+        return t;
+    } else if constexpr (D == 1) {
+        return 1_c;
+    } else {
+        return 0_c;
+    }
 }
 
-template <typename F>
-auto d_dx(SharedField<F> f) {
-    return Derivative<F>(std::move(f));
+// Derivative operators
+template <Int D = 1, typename... Fs>
+constexpr auto d_dx(Addition<Fs...> y) { return y.derivative([] (auto f) { return d_dx<D>(f); }); }
+
+template <Int D = 1, typename... Fs>
+constexpr auto d_dt(Addition<Fs...> y) { return y.derivative([] (auto f) { return d_dt<D>(f); }); }
+
+template <Int D = 1, typename F, typename G>
+constexpr auto d_dx(Subtraction<F, G> y) { return d_dx<D>(y.lhs) - d_dx<D>(y.rhs); }
+
+template <Int D = 1, typename F, typename G>
+constexpr auto d_dt(Subtraction<F, G> y) { return d_dt<D>(y.lhs) - d_dt<D>(y.rhs); }
+
+
+// Derivative operators
+template <Int D = 1, typename... Fs>
+constexpr auto d_dx(Multiplication<Fs...> y) {
+    if constexpr (D == 0) {
+        return y;
+    } else {
+        static_assert(D == 1, "Only first derivative of Multiplication is implemented.");
+        return y.derivative([] (auto f) { return d_dx(f); });
+    }
 }
 
-template <int N, typename F>
-auto d_dx(SharedField<F> f) {
-    return Derivative<F, N>(std::move(f));
+template <Int D = 1, typename... Fs>
+constexpr auto d_dt(Multiplication<Fs...> y) {
+    if constexpr (D == 0) {
+        return y;
+    } else {
+        static_assert(D == 1, "Only first derivative of Multiplication is implemented.");
+        return y.derivative([] (auto f) { return d_dt(f); });
+    }
 }
 
-template <typename F, int M>
-auto d_dx(Derivative<F, M> dydx) {
-    return d_dx<M + 1>(dydx.f());
+template <int D = 1, typename F, typename G>
+constexpr auto d_dx(Division<F, G> y) {
+    if constexpr (D == 0) {
+        return y;
+    } else {
+        static_assert(D == 1, "Only first derivative of Division is implemented.");
+        return (d_dx(y.lhs)*y.rhs - y.lhs*d_dx(y.rhs))/(y.rhs*y.rhs);
+    }
 }
 
-template <int N, typename F, int M>
-auto d_dx(Derivative<F, M> dydx) {
-    return d_dx<M + N>(dydx.f());
+template <int D = 1, typename F, typename G>
+constexpr auto d_dt(Division<F, G> y) {
+    if constexpr (D == 0) {
+        return y;
+    } else {
+        static_assert(D == 1, "Only first derivative of Division is implemented.");
+        return (d_dt(y.lhs)*y.rhs - y.lhs*d_dt(y.rhs))/(y.rhs*y.rhs);
+    }
 }
 
-template <int N, typename F, int M>
-auto d_dx(SharedField<Derivative<F, M>> dydx) {
-    return d_dx<M + N>(dydx.func().f());
-}
-
-template <int N, typename F, typename G>
-auto d_dx(Addition<F, G> y) {
-    return Derivative<F, N>(y.f()) + Derivative<G, N>(y.g());
-}
-
-template <int N, typename F, typename G>
-auto d_dx(SharedField<Addition<F, G>> y) {
-    return d_dx<N>(y.func().f()) + d_dx<N>(y.func().g());
-}
-
-template <int N, typename F>
-auto d_dx(MultiplyScalar<F> y) {
-    return y.scalar()*d_dx<N>(y.f());
-}
-
-template <int N, typename F>
-auto d_dx(SharedField<MultiplyScalar<F>> y) {
-    return y.func().scalar()*d_dx<N>(y.func().f());
-}
-
-*/
-
-}   // operators
-}   // fields
+} // operators
+} // fields

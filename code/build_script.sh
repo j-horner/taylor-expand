@@ -8,7 +8,7 @@ cd ../builds
 
 cmake -G "Visual Studio 15 2017 Win64"  -DCMAKE_CONFIGURATION_TYPES="Release;" ../code
 
-MSBuild.exe Fields.sln -consoleloggerparameters:ForceConsoleColor -m
+MSBuild.exe Fields.sln -consoleloggerparameters:ForceConsoleColor -m -verbosity:minimal
 # can use MSBuild to compile with command line, need to figure out where it is etc.
 
 # d:\Programs\Coding\Visual Studio\Community\2017\Common7\Tools>MSBuild

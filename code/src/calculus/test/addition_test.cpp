@@ -1,5 +1,7 @@
 #include "../addition.hpp"
 
+#include "../comparison.hpp"
+
 #include <gtest/gtest.h>
 
 namespace fields {
