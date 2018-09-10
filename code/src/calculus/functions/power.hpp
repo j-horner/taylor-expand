@@ -15,39 +15,43 @@ template <Int A, Int B>
 class Constant;
 
 template <typename F, Int N>
+class Power;
+
+template <typename F, Int N>
 class Power {
  public:
-    constexpr Power() = default;
+    
+     explicit constexpr Power(F f) : f_(f) {
+     }
 
-    explicit constexpr Power(F f) : f_(f) {
+    template <Int M>
+    explicit constexpr Power(Power<F, M> f) : f_(f.f_) {
     }
-
+     
     template <typename... Args>
     constexpr auto operator()(Args&&... args) const {
         return util::pow(f_(std::forward<Args>(args)...), N);
     }
 
  private:
+    template <typename G, Int M> friend class Power;
+
     F f_;
 };
 
 namespace operators {
 
 template <typename F>
-constexpr auto operator^(F, Constant<0, 1>) {
-    using namespace literals;
-    return 1_c;
-}
+constexpr auto operator^(F, Constant<0, 1>) { using namespace literals; return 1_c; }
 
 template <typename F>
-constexpr auto operator^(F f, Constant<1, 1>) {
-    return f;
-}
+constexpr auto operator^(F f, Constant<1, 1>) { return f; }
 
 template <typename F, Int N>
-constexpr auto operator^(F f, Constant<N, 1>) {
-    return Power<F, N>{f};
-}
+constexpr auto operator^(F f, Constant<N, 1>) { return Power<F, N>{f}; }
+
+template <typename F, Int N, Int M>
+constexpr auto operator^(Power<F, N> f, Constant<M, 1>) { return Power<F, N*M>{f}; }
 
 // power operator with integers, if rational powers are needed do it later
 template <Int A, Int N>

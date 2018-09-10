@@ -1,3 +1,5 @@
 add_gtest_test(taylor_series_test taylor_series_test.cpp)
 add_gtest_test(addition_test addition_test.cpp)
+add_gtest_test(subtraction_test subtraction_test.cpp)
 add_gtest_test(multiplication_test multiplication_test.cpp)
+add_gtest_test(derivative_test derivative_test.cpp)

@@ -80,48 +80,5 @@ TEST_F(MultiplicationTest, Mutliplication_Is_Correct) {
     static_assert(a/b*c == a*c/b);
 }
 
-TEST_F(MultiplicationTest, Division_Is_Correct) {
-    using namespace operators;
-    using namespace literals;
-
-    static_assert(std::is_same_v<std::decay_t<decltype((b*a)/a)>, std::decay_t<decltype(b)>>);
-    static_assert(std::is_same_v<std::decay_t<decltype(b*a/a)>, std::decay_t<decltype(b)>>);
-    static_assert(a/(b*a) == 1_c/b);
-    static_assert((a*b*c)/a == b*c);
-    static_assert(a*b*c/a == b*c);
-    static_assert(a/(a*b*c) == 1_c/(b*c));
-    static_assert(std::is_same_v<std::decay_t<decltype((a*b*c)/(b*c))>, std::decay_t<decltype(a)>>);
-    static_assert(std::is_same_v<std::decay_t<decltype(a*b*c/(b*c))>, std::decay_t<decltype(a)>>);
-    static_assert((b*c)/(a*b*c) == 1_c/a);
-    static_assert(b*c/(a*b*c) == 1_c/a);
-    static_assert((d*a)/(a*b*c) == d/(b*c));
-    static_assert(d*a/(a*b*c) == d/(b*c));
-    static_assert((a*b*c)/(d*a) == b*c/d);
-    static_assert(a*b*c/(d*a) == b*c/d);
-    static_assert((b*a)/(c*a) == b/c);
-    static_assert(b*a/(c*a) == b/c);
-    static_assert((a*b)/(c/d) == a*b*d/c);
-    static_assert((c/d)/(a*b) == c/(d*a*b));
-    static_assert((a/b)/(a/c) == c/b);
-    static_assert((b/a)/(c/a) == b/c);
-    static_assert((a/b)/(c/d) == (a*d)/(b*c));
-}
-
-TEST_F(MultiplicationTest, Derivative_Is_Correct) {
-    using namespace operators;
-
-    constexpr auto da_dx = dA_dx{};
-    constexpr auto db_dx = dB_dx{};
-    constexpr auto dc_dx = dC_dx{};
-    constexpr auto dd_dx = dD_dx{};
-
-    static_assert(d_dx(a*b) == da_dx*b + a*db_dx);
-    static_assert(d_dx(a*b*c) == da_dx*b*c + a*db_dx*c + a*b*dc_dx);
-    static_assert(d_dx(a*b*c*d) == da_dx*b*c*d + a*db_dx*c*d + a*b*dc_dx*d + a*b*c*dd_dx);
-
-    static_assert(d_dx(a/b) == (da_dx*b - a*db_dx)/(b*b));
-}
-
-
 }   // test
 }   // fields
