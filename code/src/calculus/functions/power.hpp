@@ -33,6 +33,8 @@ class Power {
         return util::pow(f_(std::forward<Args>(args)...), N);
     }
 
+    constexpr auto f() const { return f_; }
+
  private:
     template <typename G, Int M> friend class Power;
 

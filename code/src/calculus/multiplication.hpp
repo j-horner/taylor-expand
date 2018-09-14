@@ -107,11 +107,25 @@ class Multiplication {
 template <Int A, Int B, Int C, Int D, typename F>
 constexpr auto operator*(Constant<A, B> c, Multiplication<F, Constant<C, D>> y) { return (c*y.get<1>())*y.get<0>(); }
 
-template <Int A, Int B, Int C, Int D, typename... Fs>
-constexpr auto operator*(Constant<A, B> c, Multiplication<Constant<C, D>, Fs...> y) { return (c*y.get<0>())*y.sub_product<1, sizeof...(Fs) + 1>(); }
+/*template <Int A, Int B, Int C, Int D, typename... Fs>
+constexpr auto operator*(Constant<A, B> c, Multiplication<Constant<C, D>, Fs...> y) { return (c*y.get<0>())*y.sub_product<1, sizeof...(Fs) + 1>(); }*/
 
 template <typename F, Int A, Int B, typename... Fs>
-constexpr auto operator*(F f, Multiplication<Constant<A, B>, Fs...> y) { return y.get<0>()*(f*y.sub_product<1, sizeof...(Fs) + 1>()); }
+constexpr auto operator*(F f, Multiplication<Constant<A, B>, Fs...> y) {
+    if constexpr (detail::is_constant<F>::value) {
+        return (f*y.get<0>())*y.sub_product<1, sizeof...(Fs) + 1>();
+    } else {
+        return y.get<0>()*(f*y.sub_product<1, sizeof...(Fs) + 1>());
+    }
+}
+
+template <Int A, Int B, typename... Fs>
+constexpr auto operator*(Constant<A, B> f, Multiplication<Constant<A, B>, Fs...> y) {
+    return (f*f)*y.sub_product<1, sizeof...(Fs) + 1>();
+}
+
+template <typename... Fs, Int A, Int B, typename... Gs>
+constexpr auto operator*(Multiplication<Fs...> lhs, Multiplication<Constant<A, B>, Gs...> rhs) { return rhs.get<0>()*(lhs*rhs.sub_product<1, sizeof...(Gs) + 1>()); }
 
 // Multiplications with unrelated factors
 // Need to remove the case where G is constant as all constants are moved to the left-hand-side
@@ -175,6 +189,76 @@ constexpr auto operator*(Constant<A, B>, Constant<C, D>) {
     return Constant<R::num, R::den>{};
 }
 
+template <Int A, Int B>
+constexpr auto operator*(Constant<A, B>, Constant<A, B>) {
+    using R = std::ratio_multiply<std::ratio<A, B>, std::ratio<A, B>>;
+    return Constant<R::num, R::den>{};
+}
+
+template <typename F>
+constexpr auto operator*(F lhs, F) {
+    return Power<F, 2>{lhs};
+}
+
+template <typename F, Int N>
+constexpr auto operator*(Power<F, N> lhs, F) {
+    return Power<F, N + 1>{lhs};
+}
+
+template <typename F, Int N>
+constexpr auto operator*(F, Power<F, N> rhs) {
+    return Power<F, N + 1>{rhs};
+}
+
+template <typename F, typename G>
+constexpr auto operator*(Multiplication<F, G> lhs, G rhs) {
+    return lhs.get<0>()*Power<G, 2>{rhs};
+}
+
+template <typename F, typename... Gs>
+constexpr auto operator*(F lhs, Multiplication<F, Gs...> rhs) {
+    return Power<F, 2>{lhs}*rhs.sub_product<1, sizeof...(Gs) + 1>();
+}
+
+template <typename F, typename G, Int N>
+constexpr auto operator*(Multiplication<F, G> lhs, Power<G, N> rhs) {
+    return lhs.get<0>()*Power<G, N + 1>{rhs};
+}
+
+template <typename F, typename... Gs, Int N>
+constexpr auto operator*(Power<F, N> lhs, Multiplication<F, Gs...> rhs) {
+    return Power<F, N + 1>{lhs}*rhs.sub_product<1, sizeof...(Gs) + 1>();
+}
+
+template <typename F, typename G, Int N>
+constexpr auto operator*(Multiplication<F, Power<G, N>> lhs, G rhs) {
+    return lhs.get<0>()*Power<G, N + 1>{rhs};
+}
+
+template <typename F, typename... Gs, Int N>
+constexpr auto operator*(F lhs, Multiplication<Power<F, N>, Gs...> rhs) {
+    return Power<F, N + 1>{lhs}*rhs.sub_product<1, sizeof...(Gs) + 1>();
+}
+
+template <typename F, typename G, Int N, Int M>
+constexpr auto operator*(Multiplication<F, Power<G, N>> lhs, Power<G, M> rhs) {
+    return lhs.get<0>()*Power<G, N + M>{rhs};
+}
+
+template <typename F, typename... Gs, Int N, Int M>
+constexpr auto operator*(Power<F, N> lhs, Multiplication<Power<F, M>, Gs...> rhs) {
+    return Power<F, N + M>{lhs}*rhs.sub_product<1, sizeof...(Gs) + 1>();
+}
+
+template <typename F, typename G, Int N>
+constexpr auto operator*(Multiplication<F, Power<G, N>> lhs, Power<G, N> rhs) {
+    return lhs.get<0>()*Power<G, 2*N>{rhs};
+}
+
+template <typename F, typename... Gs, Int N>
+constexpr auto operator*(Power<F, N> lhs, Multiplication<Power<F, N>, Gs...> rhs) {
+    return Power<F, 2*N>{lhs}*rhs.sub_product<1, sizeof...(Gs) + 1>();
+}
 
 // Main Multiplication
 template <typename F, typename G>

@@ -52,9 +52,9 @@ TEST_F(DerivativeTest, Derivative_Of_Sums_Is_Correct) {
     constexpr auto dc_dx = dC_dx{};
     constexpr auto dd_dx = dD_dx{};
 
-    static_assert(d_dx(a + b) == da_dx + db_dx, "d_dx(a + b) != da_dx + db_dx");
-    static_assert(d_dx(a + b + c) == da_dx + db_dx + dc_dx, "d_dx(a + b + c) != da_dx + db_dx + dc_dx");
-    static_assert(d_dx(a + b + c + d) == da_dx + db_dx + dc_dx + dd_dx, "d_dx(a + b + c + d) != da_dx + db_dx + dc_dx + dd_dx");
+    static_assert(d_dx(a + b) == da_dx + db_dx);
+    static_assert(d_dx(a + b + c) == da_dx + db_dx + dc_dx);
+    static_assert(d_dx(a + b + c + d) == da_dx + db_dx + dc_dx + dd_dx);
 
     static_assert(d_dx(a - b) == da_dx - db_dx);
 }
@@ -97,53 +97,53 @@ TEST_F(DerivativeTest, Derivative_Of_Linear_Is_Correct) {
 
     {
         constexpr auto y = x;
-        static_assert(y(10) == 10, "x(10) != 10");
-        static_assert(d_dx(y) == 1, "dx/dx != 1");
+        static_assert(y(10) == 10);
+        static_assert(d_dx(y) == 1);
     }
     {
         constexpr auto y = x + x + x + x;
 
-        static_assert(y == 4_c*x, "y != 4x");
-        static_assert(y(2) == 8, "4x(2) != 8");
-        static_assert(d_dx(y) == 4, "d(4x)/dx != 4");
+        static_assert(y == 4_c*x);
+        static_assert(y(2) == 8);
+        static_assert(d_dx(y) == 4);
     }
     {
         constexpr auto y = x - x;
 
-        static_assert(y == 0, "0x != 0");
-        static_assert(y(23) == 0, "0x(23) != 0");
-        static_assert(d_dx(y) == 0, "d(0x)/dx != 0");
+        static_assert(y == 0);
+        static_assert(y(23) == 0);
+        static_assert(d_dx(y) == 0);
     }
     {
         constexpr auto y = x + x - x + x + x + x - x - x - x + x - x - x;
 
-        static_assert(y == 0, "0x != 0");
-        static_assert(y(23) == 0, "0x(23) != 0");
-        static_assert(d_dx(y) == 0, "d(0x)/dx != 0");
+        static_assert(y == 0);
+        static_assert(y(23) == 0);
+        static_assert(d_dx(y) == 0);
     }
     {
         constexpr auto y = x*x;
 
-        static_assert(y(2) == 4, "x^2(2) != 4");
-        static_assert(d_dx(y) == 2_c*x, "d(4x)/dx != 4x^3");
+        static_assert(y(2) == 4);
+        static_assert(d_dx(y) == 2_c*x);
     }
     {
         constexpr auto y = x/x;
 
-        static_assert(y(2) == 1, "1(2) != 1");
-        static_assert(d_dx(y) == 0, "d(1)/dx != 0");
+        static_assert(y(2) == 1);
+        static_assert(d_dx(y) == 0);
     }
     {
         constexpr auto y = x*x*x;
 
-        static_assert(y(4) == 64, "x^3(4) != 64");
-        static_assert(d_dx(y) == 3_c*x*x, "d(x^3)/dx != 3x^2");
+        static_assert(y(4) == 64);
+        static_assert(d_dx(y) == 3_c*x*x);
     }
     {
         constexpr auto y = x*x*x*x*x*x;
 
-        static_assert(y(4) == 4096, "x^6(4) != 4096");
-        static_assert(d_dx(y) == 6_c*x*x*x*x*x, "d(x^6)/dx != 6x^5");
+        static_assert(y(4) == 4096);
+        static_assert(d_dx(y) == 6_c*x*x*x*x*x);
     }
 }
 

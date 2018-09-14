@@ -2,6 +2,7 @@
 
 #include "functions/constant.hpp"
 #include "functions/linear.hpp"
+#include "functions/power.hpp"
 
 #include "addition.hpp"
 #include "subtraction.hpp"
@@ -23,7 +24,8 @@ class T;
 
 } // detail
 
-
+template <typename F, Int N>
+class Power;
 
 namespace operators {
 
@@ -66,6 +68,8 @@ constexpr auto d_dx(fields::detail::X) {
 
 template <Int D = 1>
 constexpr auto d_dx(fields::detail::T) {
+    static_assert(D >= 0);
+
     using namespace literals;
     if constexpr (D == 0) {
         return t;
@@ -76,6 +80,8 @@ constexpr auto d_dx(fields::detail::T) {
 
 template <Int D = 1>
 constexpr auto d_dt(fields::detail::X) {
+    static_assert(D >= 0);
+
     using namespace literals;
     if constexpr (D == 0) {
         return x;
@@ -97,6 +103,39 @@ constexpr auto d_dt(fields::detail::T) {
         return 0_c;
     }
 }
+
+template <Int D = 1, typename F, Int N>
+constexpr auto d_dx(Power<F, N> y) {
+    static_assert(D >= 0);
+    if constexpr (D == 0) {
+        return y;
+    } else if constexpr (D == 1) {
+        if constexpr (N == 2) {
+            return Constant<N>{}*y.f()*d_dx(y.f());
+        } else {
+            return Constant<N>{}*Power<F, N - 1>{y}*d_dx(y.f());
+        }
+    } else {
+        return d_dx<D - 1>(d_dx(y));
+    }
+}
+
+template <Int D = 1, typename F, Int N>
+constexpr auto d_dt(Power<F, N> y) {
+    static_assert(D >= 0);
+    if constexpr (D == 0) {
+        return y;
+    } else if constexpr (D == 1) {
+        if constexpr (N == 2) {
+            return Constant<N>{}*y.f()*d_dt(y.f());
+        } else {
+            return Constant<N>{}*Power<F, N - 1>{y}*d_dt(y.f());
+        }
+    } else {
+        return d_dt<D - 1>(d_dt(y));
+    }
+}
+
 
 // Derivative operators
 template <Int D = 1, typename... Fs>

@@ -17,7 +17,7 @@ namespace detail {
 template <typename Hamiltonian, Int N = 0>
 class Field {
  public:
-    constexpr explicit Field(Hamiltonian h) : H_(std::move(h)) {
+    constexpr explicit Field(Hamiltonian h) : H_(h) {
     }
 
     template <Int M>
@@ -35,7 +35,7 @@ class Field {
 };
 
 template <typename Hamiltonian>
-constexpr auto make_field(Hamiltonian&& H) { return Field<Hamiltonian>(std::forward<Hamiltonian>(H)); }
+constexpr auto make_field(Hamiltonian H) { return Field<Hamiltonian>{H}; }
 
 template <typename Hamiltonian, typename Phi_0, Int... Ns>
 constexpr auto taylor_series(Hamiltonian&& H, Phi_0&&, std::integer_sequence<Int, Ns...>) {
@@ -57,7 +57,7 @@ namespace operators {
 template <Int N = 1, typename Hamiltonian, Int M>
 constexpr auto d_dx(fields::detail::Field<Hamiltonian, M> phi) {
     static_assert(N >= 0);
-    return Field<Hamiltonian, M + N>(std::move(phi));
+    return Field<Hamiltonian, M + N>(phi);
 }
 
 template <Int N = 1, typename Hamiltonian, Int M>
@@ -69,7 +69,7 @@ constexpr auto d_dt(fields::detail::Field<Hamiltonian, M> phi) {
     } else if constexpr (N == 1) {
         return phi.time_derivative();
     } else {
-        return d_dt(d_dt<N - 1>(std::move(phi)));
+        return d_dt(d_dt<N - 1>(phi));
     }
 }
 
