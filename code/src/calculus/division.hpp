@@ -25,8 +25,8 @@ namespace operators {
 template <typename F, typename G>
 class Division {
  public:
-    template <typename T>
-    constexpr auto operator()(T x) const { return lhs(x)/rhs(x); }
+    template <typename... Args>
+    constexpr auto operator()(Args... args) const { return lhs(args...)/rhs(args...); }
 
     F lhs;
     G rhs;
@@ -104,7 +104,10 @@ constexpr auto operator/(Constant<A, B>, Constant<C, D>) {
 
 // division by constant is equivalent to multiplying by inverse
 template <typename F, Int A, Int B>
-constexpr auto operator/(F f, Constant<A, B> c) { return (1_c/c)*f; }
+constexpr auto operator/(F f, Constant<A, B> c) {
+    using namespace literals;
+    return (1_c/c)*f;
+}
 
 template <typename F, typename G>
 constexpr auto operator/(F lhs, G rhs) {

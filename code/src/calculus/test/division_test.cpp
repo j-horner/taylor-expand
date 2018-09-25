@@ -42,14 +42,14 @@ TEST_F(DivisionTest, Division_Is_Correct) {
     using namespace operators;
     using namespace literals;
 
-    static_assert(std::is_same_v<std::decay_t<decltype((b*a)/a)>, std::decay_t<decltype(b)>>);
-    static_assert(std::is_same_v<std::decay_t<decltype(b*a/a)>, std::decay_t<decltype(b)>>);
+    static_assert((b*a)/a == b);
+    static_assert(b*a/a == b);
     static_assert(a/(b*a) == 1_c/b);
     static_assert((a*b*c)/a == b*c);
     static_assert(a*b*c/a == b*c);
     static_assert(a/(a*b*c) == 1_c/(b*c));
-    static_assert(std::is_same_v<std::decay_t<decltype((a*b*c)/(b*c))>, std::decay_t<decltype(a)>>);
-    static_assert(std::is_same_v<std::decay_t<decltype(a*b*c/(b*c))>, std::decay_t<decltype(a)>>);
+    static_assert((a*b*c)/(b*c) == a);
+    static_assert(a*b*c/(b*c) == a);
     static_assert((b*c)/(a*b*c) == 1_c/a);
     static_assert(b*c/(a*b*c) == 1_c/a);
     static_assert((d*a)/(a*b*c) == d/(b*c));

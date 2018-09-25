@@ -45,19 +45,19 @@ TEST_F(MultiplicationTest, Mutliplication_Is_Correct) {
     {
         constexpr auto y = a*b*c*d;
 
-        static_assert(y(2) == 384, "3*2x*4x*x*x(2) != 384");
+        static_assert(y(2) == 384);
 
-        static_assert(std::is_same_v<std::decay_t<decltype(a)>, std::decay_t<decltype(y.get<0>())>>);
-        static_assert(std::is_same_v<std::decay_t<decltype(d)>, std::decay_t<decltype(y.get<3>())>>);
+        static_assert(a == y.get<0>());
+        static_assert(d == y.get<3>());
 
         static_assert(b*c == y.sub_product<1, 3>());
 
-        static_assert((a*b)*c == a*(b*c), "* is not associative");
+        static_assert((a*b)*c == a*(b*c));
 
         constexpr auto f = a*b;
         constexpr auto g = c*d;
 
-        static_assert(f*g == y, "(a*b)*(c*d) != a*b*c*d");
+        static_assert(f*g == y);
     }
 
     static_assert((3_c/4_c)*a*5_c/6_c == (5_c/8_c)*a);

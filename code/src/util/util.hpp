@@ -19,6 +19,7 @@ constexpr auto binomial(Int n, Int k) {
 template <typename T, typename Int>
 constexpr auto pow(T x, Int n) {
     static_assert(std::is_integral_v<Int>, "n must be an integral type.");
+    static_assert(std::is_arithmetic_v<T>, "This function is intended to be used with arithmetic types.");
 
     auto y = T{1};
     for (auto i = 0; i < n; ++i) {

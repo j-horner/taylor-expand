@@ -8,6 +8,7 @@
 #include "subtraction.hpp"
 #include "multiplication.hpp"
 #include "division.hpp"
+#include "taylor_series.hpp"
 
 // C headers
 #include <cstdint>
@@ -21,6 +22,9 @@ namespace detail {
 
 class X;
 class T;
+
+template <typename H, Int N>
+class Field;
 
 } // detail
 
@@ -157,8 +161,7 @@ constexpr auto d_dx(Multiplication<Fs...> y) {
     if constexpr (D == 0) {
         return y;
     } else {
-        static_assert(D == 1, "Only first derivative of Multiplication is implemented.");
-        return y.derivative([] (auto f) { return d_dx(f); });
+        return d_dx<D - 1>(y.derivative([] (auto f) { return d_dx(f); }));
     }
 }
 
@@ -167,30 +170,69 @@ constexpr auto d_dt(Multiplication<Fs...> y) {
     if constexpr (D == 0) {
         return y;
     } else {
-        static_assert(D == 1, "Only first derivative of Multiplication is implemented.");
-        return y.derivative([] (auto f) { return d_dt(f); });
+        return d_dt<D - 1>(y.derivative([] (auto f) { return d_dt(f); }));
     }
 }
 
-template <int D = 1, typename F, typename G>
+template <Int D = 1, typename F, typename G>
 constexpr auto d_dx(Division<F, G> y) {
+    static_assert(D >= 0);
     if constexpr (D == 0) {
         return y;
     } else {
-        static_assert(D == 1, "Only first derivative of Division is implemented.");
-        return (d_dx(y.lhs)*y.rhs - y.lhs*d_dx(y.rhs))/(y.rhs*y.rhs);
+        return d_dx<D - 1>(d_dx(y.lhs*Power<G, -1>{y.rhs}));
+        // return d_dx<D - 1>((d_dx(y.lhs)*y.rhs - y.lhs*d_dx(y.rhs))/(y.rhs*y.rhs));
     }
 }
 
-template <int D = 1, typename F, typename G>
+template <Int D = 1, typename F, typename G>
 constexpr auto d_dt(Division<F, G> y) {
+    static_assert(D >= 0);
     if constexpr (D == 0) {
         return y;
     } else {
-        static_assert(D == 1, "Only first derivative of Division is implemented.");
-        return (d_dt(y.lhs)*y.rhs - y.lhs*d_dt(y.rhs))/(y.rhs*y.rhs);
+        return d_dt<D - 1>(d_dt(y.lhs*Power<G, -1>{y.rhs}));
+        // return d_dt<D - 1>((d_dt(y.lhs)*y.rhs - y.lhs*d_dt(y.rhs))/(y.rhs*y.rhs));
     }
 }
+
+template <Int D = 1, typename F>
+constexpr auto d_dx(F f) {
+    if constexpr (D == 0) {
+        return f;
+    } else {
+        static_assert(false, "The derivative of this type is not known.");
+    }
+}
+
+template <Int D = 1, typename F>
+constexpr auto d_dt(F f) {
+    if constexpr (D == 0) {
+        return f;
+    } else {
+        static_assert(false, "The derivative of this type is not known.");
+    }
+}
+
+template <Int N = 1, typename Hamiltonian, Int M>
+constexpr auto d_dx(fields::detail::Field<Hamiltonian, M> phi) {
+    static_assert(N >= 0);
+    return fields::detail::Field<Hamiltonian, M + N>(phi);
+}
+
+template <Int N = 1, typename Hamiltonian, Int M>
+constexpr auto d_dt(fields::detail::Field<Hamiltonian, M> phi) {
+    static_assert(N >= 0);
+
+    if constexpr (N == 0) {
+        return phi;
+    } else if constexpr (N == 1) {
+        return phi.time_derivative();
+    } else {
+        return d_dt(d_dt<N - 1>(phi));
+    }
+}
+
 
 } // operators
 } // fields

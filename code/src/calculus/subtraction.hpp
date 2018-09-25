@@ -20,8 +20,8 @@ namespace operators {
 template <typename F, typename G>
 class Subtraction {
 public:
-    template <typename T>
-    constexpr auto operator()(T x) const { return lhs(x) - rhs(x); }
+    template <typename... Args>
+    constexpr auto operator()(Args... args) const { return lhs(args...) - rhs(args...); }
 
     F lhs;
     G rhs;

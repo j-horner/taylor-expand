@@ -38,8 +38,8 @@ class Addition {
     constexpr Addition(F lhs, G rhs) : fs(std::make_tuple(lhs, rhs)) {
     }
 
-    template <typename T>
-    constexpr auto operator()(T x) const { return sum_impl(x, std::make_index_sequence<N>{}); }
+    template <typename... Args>
+    constexpr auto operator()(Args... args) const { return sum_impl(std::make_index_sequence<N>{}, std::make_tuple(args...)); }
 
     template <std::size_t I>
     constexpr auto& get() const { return std::get<I>(fs); }
@@ -59,8 +59,8 @@ class Addition {
     explicit constexpr Addition(std::tuple<Fs...> ts) : fs(ts) {
     }
 
-    template <typename T, std::size_t... Is>
-    constexpr auto sum_impl(T x, std::index_sequence<Is...>) const { return (get<Is>()(x) + ...); }
+    template <std::size_t... Is, typename Tuple>
+    constexpr auto sum_impl(std::index_sequence<Is...>, Tuple args) const { return (std::apply(get<Is>(), args) + ...); }
 
     template <typename D, std::size_t... Is>
     constexpr auto derivative_impl(D d, std::index_sequence<Is...>) const { return ((d(get<Is>())) + ...); }

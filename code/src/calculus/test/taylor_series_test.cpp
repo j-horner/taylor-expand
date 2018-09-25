@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <type_traits>
+#include <vector>
 
 #include <cmath>
 
@@ -20,125 +21,121 @@ class TaylorSeriesTest : public ::testing::Test {
  protected:
 };
 
-// struct H {
-//     template <typename T> constexpr auto operator()(T phi) const {
-//         using namespace operators;
-//         return (x + t*t)*phi;
-//     }
-// };
-
-
-TEST_F(TaylorSeriesTest, TimeDerivativeIsCorrect) {
+TEST_F(TaylorSeriesTest, Series_Expansion_Is_Correct) {
     using namespace operators;
     using namespace literals;
-    using namespace fields::detail;
 
+    {
+        constexpr auto H = [] (auto) { return 0_c; };
+
+        constexpr auto phi_0 = [] {};
+        {
+                constexpr auto y0 = taylor_expand<0>(H, phi_0);
+                constexpr auto y1 = taylor_expand<1>(H, phi_0);
+                constexpr auto y2 = taylor_expand<2>(H, phi_0);
+                constexpr auto y3 = taylor_expand<3>(H, phi_0);
+                static_assert(y0 == phi_0);
+                static_assert(y1 == y0);
+                static_assert(y2 == y0);
+                static_assert(y3 == y0);
+        }
+    }
+    {
+        constexpr auto H = [] (auto) { return 3_c; };
+
+        constexpr auto phi_0 = [] {};
+        {
+                constexpr auto y0 = taylor_expand<0>(H, phi_0);
+                constexpr auto y1 = taylor_expand<1>(H, phi_0);
+                constexpr auto y2 = taylor_expand<2>(H, phi_0);
+                constexpr auto y3 = taylor_expand<3>(H, phi_0);
+                static_assert(y0 == phi_0);
+                static_assert(y1 == phi_0 + 3_c*t);
+                static_assert(y2 == y1);
+                static_assert(y3 == y1);
+        }
+
+    }
+    {
+        constexpr auto H = [] (auto) { return 7_c*x - 4_c; };
+
+        constexpr auto phi_0 = [] {};
+        {
+                constexpr auto y0 = taylor_expand<0>(H, phi_0);
+                constexpr auto y1 = taylor_expand<1>(H, phi_0);
+                constexpr auto y2 = taylor_expand<2>(H, phi_0);
+                constexpr auto y3 = taylor_expand<3>(H, phi_0);
+                static_assert(y0 == phi_0);
+                static_assert(y1 == phi_0 + (7_c*x - 4_c)*t);
+                static_assert(y2 == y1);
+                static_assert(y3 == y1);
+        }
+    }
+    {
+        constexpr auto H = [] (auto) { return t - ((x*t)^2_c)/2_c; };
+
+        constexpr auto phi_0 = [] {};
+        {
+                constexpr auto y0 = taylor_expand<0>(H, phi_0);
+                constexpr auto y1 = taylor_expand<1>(H, phi_0);
+                constexpr auto y2 = taylor_expand<2>(H, phi_0);
+                constexpr auto y3 = taylor_expand<3>(H, phi_0);
+
+                static_assert(y0 == phi_0);
+                static_assert(y1 == y0);
+                static_assert(y2 == y1 + (t*t)/2_c);
+                static_assert(y3 == y0 + (t*t)/2_c + (-1_c*x*x*(t^3_c))/6_c);
+        }
+    }
+    {
+        constexpr auto H = [] (auto) { return 1_c/(1_c + t); };
+
+        constexpr auto phi_0 = 0_c;
+        {
+                constexpr auto y0 = taylor_expand<0>(H, phi_0);
+                constexpr auto y1 = taylor_expand<1>(H, phi_0);
+                constexpr auto y2 = taylor_expand<2>(H, phi_0);
+                constexpr auto y3 = taylor_expand<3>(H, phi_0);
+
+                static_assert(y0 == 0);
+                static_assert(y1 == t);
+                static_assert(y2 == t + (-1_c*t*t)/2_c);
+                static_assert(y3 == t + (-1_c*t*t)/2_c + (t^3_c)/3_c);
+        }
+    }
     {
         constexpr auto H = [] (auto phi) { return phi; };
 
-        constexpr auto phi = make_field(H);
+        {
+            constexpr auto phi_0 = 1_c;
 
-        static_assert(d_dt<0>(phi) == phi);
-        static_assert(d_dt<1>(phi) == d_dt(phi));
-
-        // only true because of the form of H
-        static_assert(d_dt<1>(phi) == phi);
-        static_assert(d_dt<10>(phi) == phi);
+            {
+                constexpr auto y0 = taylor_expand<0>(H, phi_0);
+                constexpr auto y1 = taylor_expand<1>(H, phi_0);
+                constexpr auto y2 = taylor_expand<2>(H, phi_0);
+                constexpr auto y3 = taylor_expand<3>(H, phi_0);
+                static_assert(y0 == 1);
+                static_assert(y1 == 1_c + t);
+                static_assert(y2 == 1_c + t + (t^2_c)/2_c);
+                static_assert(y3 == 1_c + t + (t^2_c)/2_c + (t^3_c)/6_c);
+            }
+        }
     }
-
-    {
-        constexpr auto H = [] (auto phi) { return phi + 5_c; };
-
-        constexpr auto phi = make_field(H);
-
-        static_assert(d_dt<0>(phi) == phi);
-        static_assert(d_dt<1>(phi) == d_dt(phi));
-
-        // only true because of the form of H
-        static_assert(d_dt<1>(phi) == phi + 5_c);
-        static_assert(d_dt<10>(phi) == phi + 5_c);
-    }
-
-    {
-        constexpr auto H = [] (auto phi) { return 2_c*phi; };
-
-        constexpr auto phi = make_field(H);
-
-        static_assert(d_dt<0>(phi) == phi);
-        static_assert(d_dt<1>(phi) == d_dt(phi));
-
-        // only true because of the form of H
-        static_assert(d_dt<1>(phi) == 2_c*phi);
-        static_assert(d_dt<2>(phi) == 4_c*phi);
-        static_assert(d_dt<5>(phi) == 32_c*phi);
-        static_assert(d_dt<10>(phi) == 1024_c*phi);
-    }
-
-    {
-        constexpr auto H = [] (auto phi) { return phi*phi; };
-
-        constexpr auto phi = make_field(H);
-
-        static_assert(d_dt<0>(phi) == phi);
-        static_assert(d_dt<1>(phi) == d_dt(phi));
-
-        // only true because of the form of H
-        static_assert(d_dt<1>(phi) == factorial(1_c)*phi*phi);
-        static_assert(d_dt<2>(phi) == factorial(2_c)*phi*phi*phi);
-        static_assert(d_dt<5>(phi) == factorial(5_c)*phi*phi*phi*phi*phi*phi);
-        static_assert(d_dt<10>(phi) == factorial(10_c)*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi);
-        static_assert(d_dt<20>(phi) == factorial(20_c)*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi);
-    }
-
-    {
-        constexpr auto H = [] (auto) { return x + t; };
-
-        constexpr auto phi = make_field(H);
-
-        static_assert(d_dt<0>(phi) == phi);
-        static_assert(d_dt<1>(phi) == d_dt(phi));
-
-        // only true because of the form of H
-        static_assert(d_dt(phi) == x + t);
-        static_assert(d_dt<2>(phi) == 1);
-        static_assert(d_dt<3>(phi) == 0);
-        static_assert(d_dt<5>(phi) == 0);
-        static_assert(d_dt<10>(phi) == 0);
-        static_assert(d_dt<20>(phi) == 0);
-    }
-
-    {
-        constexpr auto H = [] (auto phi) { return (x + t*t)*phi; };
-
-        constexpr auto phi = make_field(H);
-
-        static_assert(d_dt<0>(phi) == phi);
-        static_assert(d_dt<1>(phi) == d_dt(phi));
-
-        static_assert(d_dt(phi) == (x + t*t)*phi);
-
-        static_assert(d_dt<2>(phi) == 2_c*t*phi + (x + t*t)*(x + t*t)*phi);
-
-        // NOTE:    During d_dt<3>(phi), the code currently does not do a full simplification
-        static_assert(d_dt<3>(phi) == ((2_c*phi) + (2_c*t*(x + t*t)*phi)) + ((4_c*(x + t*t)*t*phi) + ((x + t*t)*(x + t*t)*(x + t*t)*phi)));
-    }
-
     {
         constexpr auto H = [] (auto phi) { return d_dx<2>(phi); };
 
-        constexpr auto phi = make_field(H);
-
-        static_assert(d_dt<0>(phi) == phi);
-        static_assert(d_dt<1>(phi) == d_dt(phi));
-
-        static_assert(d_dt<1>(phi) == d_dx<2>(phi));
-        static_assert(d_dt<2>(phi) == d_dx<4>(phi));
-        static_assert(d_dt<5>(phi) == d_dx<10>(phi));
-        static_assert(d_dt<10>(phi) == d_dx<20>(phi));
-        static_assert(d_dt<20>(phi) == d_dx<40>(phi));
-        static_assert(d_dt<100>(phi) == d_dx<200>(phi));     // compiles but takes a few seconds
+        constexpr auto phi_0 = 1_c/(1_c + x);
+        {
+                constexpr auto y0 = taylor_expand<0>(H, phi_0);
+                constexpr auto y1 = taylor_expand<1>(H, phi_0);
+                constexpr auto y2 = taylor_expand<2>(H, phi_0);
+                constexpr auto y3 = taylor_expand<3>(H, phi_0);
+                static_assert(y0 == phi_0);
+                static_assert(y1 == phi_0 + d_dx<2>(phi_0)*t);
+                static_assert(y2 == phi_0 + d_dx<2>(phi_0)*t + d_dx<4>(phi_0)*(t*t)/2_c);
+                static_assert(y3 == phi_0 + d_dx<2>(phi_0)*t + d_dx<4>(phi_0)*(t*t)/2_c + d_dx<6>(phi_0)*(t^3_c)/6_c);
+        }
     }
-
 }
 
 }   // test

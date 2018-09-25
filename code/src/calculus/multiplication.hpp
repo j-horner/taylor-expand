@@ -4,6 +4,8 @@
 #include "addition.hpp"
 #include "division.hpp"
 
+#include "comparison.hpp"
+
 #include "derivative.hpp"
 
 // C++ headers
@@ -44,8 +46,8 @@ class Multiplication {
     constexpr Multiplication(F lhs, G rhs) : fs(std::make_tuple(lhs, rhs)) {
     }
 
-    template <typename T>
-    constexpr auto operator()(T x) const { return multiply_impl(x, std::make_index_sequence<N>{}); }
+    template <typename... Args>
+    constexpr auto operator()(Args... args) const { return multiply_impl(std::make_index_sequence<N>{}, std::make_tuple(args...)); }
 
     template <std::size_t I>
     constexpr auto& get() const { return std::get<I>(fs); }
@@ -66,8 +68,8 @@ class Multiplication {
     }
 
     // https://stackoverflow.com/questions/43242923/product-of-functions-with-a-fold-expression#43243060
-    template <typename T, std::size_t... Is>
-    constexpr auto multiply_impl(T x, std::index_sequence<Is...>) const { return (get<Is>()(x)*...); }
+    template <std::size_t... Is, typename Tuple>
+    constexpr auto multiply_impl(std::index_sequence<Is...>, Tuple args) const { return (std::apply(get<Is>(), args)*...);}
 
     template <typename D, std::size_t... Is>
     constexpr auto derivative_impl(D d, std::index_sequence<Is...>) const { return (product_rule_term<Is>(d) + ...); }
@@ -197,7 +199,12 @@ constexpr auto operator*(Constant<A, B>, Constant<A, B>) {
 
 template <typename F>
 constexpr auto operator*(F lhs, F) {
-    return Power<F, 2>{lhs};
+    using namespace literals;
+    if constexpr (std::is_same_v<std::decay_t<decltype(lhs)>, Constant<0>>) {
+        return 0_c;
+    } else {
+        return Power<F, 2>{lhs};
+    }
 }
 
 template <typename F, Int N>
@@ -212,7 +219,12 @@ constexpr auto operator*(F, Power<F, N> rhs) {
 
 template <typename F, typename G>
 constexpr auto operator*(Multiplication<F, G> lhs, G rhs) {
-    return lhs.get<0>()*Power<G, 2>{rhs};
+    using namespace literals;
+    if constexpr (std::is_same_v<std::decay_t<decltype(rhs)>, Constant<0>>) {
+        return 0_c;
+    } else {
+        return lhs.get<0>()*Power<G, 2>{rhs};
+    }
 }
 
 template <typename F, typename... Gs>

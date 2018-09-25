@@ -19,18 +19,29 @@ class Power;
 
 template <typename F, Int N>
 class Power {
+    static_assert(std::is_same_v<F, Constant<0>> == false, "0 should not have powers taken! 0^N: -> 0 for N > 0, -> 1 for N = 0 and is undefined for N < 0.");
+    static_assert(std::is_same_v<F, Constant<1>> == false, "1 should not have powers taken! 1^N: -> 1 for and N.");
+
  public:
-    
+
      explicit constexpr Power(F f) : f_(f) {
      }
 
     template <Int M>
     explicit constexpr Power(Power<F, M> f) : f_(f.f_) {
     }
-     
+
     template <typename... Args>
-    constexpr auto operator()(Args&&... args) const {
-        return util::pow(f_(std::forward<Args>(args)...), N);
+    constexpr auto operator()(Args... args) const {
+        if constexpr ((std::is_arithmetic_v<Args> && ...)) {
+            return util::pow(f_(args...), N);
+        } else if constexpr (std::is_same_v<decltype(f_(args...)), Constant<0>>) {
+            return 0_c;
+        } else if constexpr (std::is_same_v<decltype(f_(args...)), Constant<1>>) {
+            return 1_c;
+        } else {
+            return Power<decltype(f_(args...)), N>{f_(args...)};
+        }
     }
 
     constexpr auto f() const { return f_; }

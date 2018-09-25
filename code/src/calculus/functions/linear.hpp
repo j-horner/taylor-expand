@@ -9,14 +9,14 @@ namespace fields {
 namespace detail {
 class X {
 public:
-    template <typename R>
-    constexpr auto operator()(R x) const { return x; }
+    template <typename Phi, typename X_, typename T_>
+    constexpr auto operator()(Phi, X_ x, T_) const { return x; }
 };
 
 class T {
  public:
-    template <typename R>
-    constexpr auto operator()(R t) const { return t; }
+    template <typename Phi, typename X_, typename T_>
+    constexpr auto operator()(Phi, X_, T_ t) const { return t; }
 };
 
 }   // detail

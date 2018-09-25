@@ -37,13 +37,11 @@ class Constant : std::ratio<Num, Denom> {
 
     // automatically convert to normal real numbers
     template <typename T>
-    constexpr operator T() const { return static_cast<T>(evaluate<T>()); }
+    constexpr operator T() const { static_assert(std::is_arithmetic_v<T>, "Can only implicitly convert to arithmetic types."); return static_cast<T>(evaluate<T>()); }
 
     // this is a constant function, whatever arguments we try to pass it, it will return the same number
     template <typename... Ts>
-    constexpr auto operator()(Ts...) const {
-        return evaluate<double>();
-    }
+    constexpr auto operator()(Ts...) const { return *this; }
 
  private:
     template <typename T>

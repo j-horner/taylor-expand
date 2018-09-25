@@ -45,8 +45,8 @@ TEST_F(SubtractionTest, Subtraction_Is_Correct) {
     static_assert(a - a == 0);
 
     // operator- with Addition<...>
-    static_assert(std::is_same_v<std::decay_t<decltype(b + a - a)>, std::decay_t<decltype(b)>>);
-    static_assert(std::is_same_v<std::decay_t<decltype((b + a) - a)>, std::decay_t<decltype(b)>>);
+    static_assert(b + a - a == b);
+    static_assert((b + a) - a == b);
     static_assert(b + a - (a + c + d) == b - c - d);
     static_assert((b + a) - (a + c + d) == b - c - d);
     static_assert(a + c + d - (b + a) == c + d - b);
@@ -64,7 +64,7 @@ TEST_F(SubtractionTest, Subtraction_Is_Correct) {
     static_assert(a - (b - a) == 2_c*a - b);
     static_assert(a - b - a == -b);
     static_assert((a - b) - a == -b);
-    static_assert(std::is_same_v<std::decay_t<decltype(a - (a - b))>, std::decay_t<decltype(b)>>);
+    static_assert(a - (a - b) == b);
     static_assert(a - b - c == a - (b + c));
     static_assert((a - b) - c == a - (b + c));
     static_assert(a - (b - c) == (a + c) - b);

@@ -45,20 +45,20 @@ TEST_F(AdditionTest, Addition_Is_Correct) {
     {
         constexpr auto y = a + b + c + d;   // x^2 + 6x + 3
 
-        static_assert(y(2) == 19, "(x^2 + 6x + 3)(2) != 19");
+        static_assert(y(2) == 19);
 
-        static_assert(std::is_same_v<std::decay_t<decltype(a)>, std::decay_t<decltype(y.get<0>())>>);
-        static_assert(std::is_same_v<std::decay_t<decltype(d)>, std::decay_t<decltype(y.get<3>())>>);
+        static_assert(a == y.get<0>());
+        static_assert(d == y.get<3>());
 
         static_assert(b + c == y.sub_sum<1, 3>());
 
-        static_assert((a + b) + c == a + (b + c), "+ is not associative");
+        static_assert((a + b) + c == a + (b + c));
 
 
         constexpr auto f = a + b;
         constexpr auto g = c + d;
 
-        static_assert(f + g == y, "(a + b) + (c + d) != a + b + c + d");
+        static_assert(f + g == y);
     }
 
     static_assert(a + a == 2_c*a);
@@ -70,8 +70,8 @@ TEST_F(AdditionTest, Addition_Is_Correct) {
     static_assert((a + b + c) + a == b + c + 2_c*a);
 
     // operator+ with Subtraction<...>
-    static_assert(std::is_same_v<std::decay_t<decltype(b - a + a)>, std::decay_t<decltype(b)>>);
-    static_assert(std::is_same_v<std::decay_t<decltype((b - a) + a)>, std::decay_t<decltype(b)>>);
+    static_assert(b - a + a == b);
+    static_assert((b - a) + a == b);
     static_assert(a - b + a == 2_c*a - b);
     static_assert((a - b) + a == 2_c*a - b);
     static_assert(a + a - b == 2_c*a - b);
