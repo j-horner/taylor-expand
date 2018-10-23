@@ -31,7 +31,6 @@ class Constant : std::ratio<Num, Denom> {
         static_assert((A == Num) && (B == Denom));
     }
 
-
     constexpr static auto num = std::ratio<Num, Denom>::num;
     constexpr static auto den = std::ratio<Num, Denom>::den;
 

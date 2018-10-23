@@ -42,7 +42,7 @@ class Addition {
     constexpr auto operator()(Args... args) const { return sum_impl(std::make_index_sequence<N>{}, std::make_tuple(args...)); }
 
     template <std::size_t I>
-    constexpr auto& get() const { return std::get<I>(fs); }
+    constexpr auto get() const { return std::get<I>(fs); }
 
     template <std::size_t I, std::size_t J>
     constexpr auto sub_sum() const {
@@ -289,6 +289,10 @@ constexpr auto operator+(F lhs, G rhs) {
         return rhs;
     } else if constexpr (std::is_same_v<decltype(rhs), Constant<0>>) {
         return lhs;
+    } else if constexpr (std::is_arithmetic_v<G>) {
+        return static_cast<G>(lhs) + rhs;
+    } else if constexpr (std::is_arithmetic_v<F>) {
+        return lhs + static_cast<F>(rhs);
     } else {
         return Addition<F, G>(lhs, rhs);
     }

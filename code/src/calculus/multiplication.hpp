@@ -50,7 +50,7 @@ class Multiplication {
     constexpr auto operator()(Args... args) const { return multiply_impl(std::make_index_sequence<N>{}, std::make_tuple(args...)); }
 
     template <std::size_t I>
-    constexpr auto& get() const { return std::get<I>(fs); }
+    constexpr auto get() const { return std::get<I>(fs); }
 
     template <std::size_t I, std::size_t J>
     constexpr auto sub_product() const {
@@ -179,6 +179,9 @@ constexpr auto operator*(Division<A, B> lhs, Division<C, A> rhs) { return rhs.lh
 template <typename A, typename B, typename C, typename D>
 constexpr auto operator*(Division<A, B> lhs, Division<C, D> rhs) { return (lhs.lhs*rhs.lhs)/(lhs.rhs*rhs.rhs);}
 
+template <typename... Fs, typename A, typename B>
+constexpr auto operator*(Multiplication<Fs...> lhs, Division<A, B> rhs) { return (lhs*rhs.lhs)/rhs.rhs; }
+
 template <typename F, typename G, typename H>
 constexpr auto operator*(F f, Division<G, H> d) { return (f*d.lhs)/d.rhs; }
 
@@ -214,7 +217,12 @@ constexpr auto operator*(Power<F, N> lhs, F) {
 
 template <typename F, Int N>
 constexpr auto operator*(F, Power<F, N> rhs) {
-    return Power<F, N + 1>{rhs};
+    using namespace literals;
+    if constexpr (N == -1) {
+        return 1_c;
+    } else {
+        return Power<F, N + 1>{rhs};
+    }
 }
 
 template <typename F, typename G>
@@ -284,6 +292,10 @@ constexpr auto operator*(F lhs, G rhs) {
         return lhs;
     } else if constexpr (detail::is_constant<G>::value) {
         return rhs*lhs;
+    } else if constexpr (std::is_arithmetic_v<G>) {
+        return static_cast<G>(lhs)*rhs;
+    } else if constexpr (std::is_arithmetic_v<F>) {
+        return lhs*static_cast<F>(rhs);
     } else {
         return Multiplication<F, G>(lhs, rhs);
     }

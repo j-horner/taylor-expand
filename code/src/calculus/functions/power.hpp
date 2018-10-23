@@ -22,6 +22,8 @@ class Power {
     static_assert(std::is_same_v<F, Constant<0>> == false, "0 should not have powers taken! 0^N: -> 0 for N > 0, -> 1 for N = 0 and is undefined for N < 0.");
     static_assert(std::is_same_v<F, Constant<1>> == false, "1 should not have powers taken! 1^N: -> 1 for and N.");
 
+    static_assert(N != 0, "F^0 -> 1");
+
  public:
 
      explicit constexpr Power(F f) : f_(f) {
