@@ -32,15 +32,16 @@ constexpr auto d_dx(D) -> dD_dx { return {}; }
 
 class MultiplicationTest : public ::testing::Test {
  protected:
-    constexpr static auto a = A{};
-    constexpr static auto b = B{};
-    constexpr static auto c = C{};
-    constexpr static auto d = D{};
 };
 
 TEST_F(MultiplicationTest, Mutliplication_Is_Correct) {
     using namespace operators;
     using namespace literals;
+
+    constexpr auto a = A{};
+    constexpr auto b = B{};
+    constexpr auto c = C{};
+    constexpr auto d = D{};
 
     {
         constexpr auto y = a*b*c*d;

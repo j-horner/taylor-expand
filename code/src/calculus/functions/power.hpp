@@ -4,6 +4,8 @@
 
 #include "../../util/util.hpp"
 
+#include <ostream>
+
 // C headers
 #include <cstdint>
 
@@ -54,6 +56,12 @@ class Power {
     F f_;
 };
 
+template <typename F, Int N>
+auto operator<<(std::ostream& os, Power<F, N> y) -> std::ostream& {
+    os << y.f() << "^{" << N << "}";
+    return os;
+}
+
 namespace operators {
 
 template <typename F>
@@ -87,6 +95,22 @@ constexpr auto operator^(Constant<A, 1>, Constant<N, 1>) {
 
 template <Int A, Int B, Int N>
 constexpr auto operator^(Constant<A, B>, Constant<N, 1>) { return (Constant<A, 1>{}^Constant<N, 1>{}) / (Constant<B, 1>{}^Constant<N, 1>{}); }
+
+namespace detail {
+
+template <typename T, typename U>
+struct is_power : std::false_type {};
+
+template <typename F, Int N>
+struct is_power<Power<F, N>, F> : std::true_type {};
+
+template <typename F, Int N>
+struct is_power<F, Power<F, N>> : std::true_type {};
+
+template <typename F, Int N, Int M>
+struct is_power<Power<F, N>, Power<F, M>> : std::true_type {};
+
+}   //detail
 
 }   // operators
 }   // fields

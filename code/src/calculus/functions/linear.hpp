@@ -4,6 +4,8 @@
 
 #include "../derivative.hpp"
 
+#include <ostream>
+
 namespace fields {
 
 namespace detail {
@@ -19,9 +21,21 @@ class T {
     constexpr auto operator()(Phi, X_, T_ t) const { return t; }
 };
 
+auto operator<<(std::ostream& os, X) -> std::ostream& {
+    os << "x";
+    return os;
+}
+
+auto operator<<(std::ostream& os, T) -> std::ostream& {
+    os << "t";
+    return os;
+}
+
 }   // detail
 
 constexpr static auto x = detail::X{};
 constexpr static auto t = detail::T{};
+
+
 
 }

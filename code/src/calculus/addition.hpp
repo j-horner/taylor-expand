@@ -6,6 +6,7 @@
 #include "functions/constant.hpp"
 
 // C++ headers
+#include <ostream>
 #include <tuple>
 
 namespace fields {
@@ -44,6 +45,9 @@ class Addition {
     template <std::size_t I>
     constexpr auto get() const { return std::get<I>(fs); }
 
+    template <typename F>
+    constexpr auto get() const { return std::get<F>(fs); }
+
     template <std::size_t I, std::size_t J>
     constexpr auto sub_sum() const {
         static_assert((I <= N) && (J <= N) && (I <= J), "Expect following conditions on I, J: (I <= N) && (J <= N) && (I <= J)");
@@ -78,6 +82,34 @@ class Addition {
 
     constexpr static auto N = sizeof...(Fs);
 };
+
+namespace detail {
+
+template <typename T, typename... Rest>
+auto print(std::ostream& os, T first, Rest... Rest) -> void;
+
+template <typename T>
+auto print(std::ostream& os, T last) -> void {
+    os << last;
+}
+
+template <typename T, typename... Rest>
+auto print(std::ostream& os, T first, Rest... rest) -> void {
+    os << first << " + ";
+    print(os, rest...);
+}
+
+}
+
+template <typename... Fs>
+auto operator<<(std::ostream& os, Addition<Fs...> y) -> std::ostream& {
+    os << "(";
+    detail::print(os, y.get<Fs>()...);
+    os << ")";
+
+    return os;
+}
+
 
 // -------------------------------------------------------------------------------------------------
 //                                      + operations
@@ -125,26 +157,36 @@ constexpr auto operator+(F f, Addition<F, Gs...> y) {
 }
 
 // Additions with unrelated factors
+template <typename... Fs, typename G>
+constexpr auto operator+(G g, Addition<Fs...> f) {
+    return f + g;
+}
+
 template <typename G, typename... Fs>
 constexpr auto operator+(Addition<Fs...> f, G g) {
     if constexpr (std::is_same_v<decltype(g), Constant<0>>) {
         return f;
     } else {
-        return Addition<Fs..., G>(f, g);
-    }
-}
+        constexpr static auto match_found = (std::is_same_v<Fs, G> || ...);
 
-template <typename... Fs, typename G>
-constexpr auto operator+(G g, Addition<Fs...> f) {
-    if constexpr (std::is_same_v<decltype(g), Constant<0>>) {
-        return f;
-    } else {
-        return Addition<G, Fs...>(g, f);
+        if constexpr (false == match_found) {
+            constexpr static auto multiple_found = (detail::is_multiple<Fs, G>::value || ...);
+
+            if constexpr (false == multiple_found) {
+                return Addition<Fs..., G>(f, g);
+            } else {
+                return f.get<0>() + (f.sub_sum<1, sizeof...(Fs)>() + g);
+            }
+        } else {
+            return f.get<0>() + (f.sub_sum<1, sizeof...(Fs)>() + g);
+        }
     }
 }
 
 template <typename... Fs, typename... Gs>
-constexpr auto operator+(Addition<Fs...> lhs, Addition<Gs...> rhs) { return Addition<Fs..., Gs...>(lhs, rhs); }
+constexpr auto operator+(Addition<Fs...> lhs, Addition<Gs...> rhs) {
+    return (lhs + rhs.get<0>()) + rhs.sub_sum<1, sizeof...(Gs)>();
+}
 
 // Subtractions with common factors
 template <typename F, typename G>

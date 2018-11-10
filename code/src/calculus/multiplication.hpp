@@ -52,6 +52,9 @@ class Multiplication {
     template <std::size_t I>
     constexpr auto get() const { return std::get<I>(fs); }
 
+    template <typename F>
+    constexpr auto get() const { return std::get<F>(fs); }
+
     template <std::size_t I, std::size_t J>
     constexpr auto sub_product() const {
         static_assert((I <= N) && (J <= N) && (I <= J), "Expect following conditions on I, J: (I <= N) && (J <= N) && (I <= J)");
@@ -94,10 +97,17 @@ class Multiplication {
         }
     }
 
-     std::tuple<Fs...> fs;
+    std::tuple<Fs...> fs;
 
     constexpr static auto N = sizeof...(Fs);
 };
+
+template <typename... Fs>
+auto operator<<(std::ostream& os, Multiplication<Fs...> y) -> std::ostream& {
+    (os << ... << y.get<Fs>());
+    return os;
+}
+
 
 // -------------------------------------------------------------------------------------------------
 //                                      * operations
@@ -108,9 +118,6 @@ class Multiplication {
 // TODO - Multiplication<F, Constant> should never happen...
 template <Int A, Int B, Int C, Int D, typename F>
 constexpr auto operator*(Constant<A, B> c, Multiplication<F, Constant<C, D>> y) { return (c*y.get<1>())*y.get<0>(); }
-
-/*template <Int A, Int B, Int C, Int D, typename... Fs>
-constexpr auto operator*(Constant<A, B> c, Multiplication<Constant<C, D>, Fs...> y) { return (c*y.get<0>())*y.sub_product<1, sizeof...(Fs) + 1>(); }*/
 
 template <typename F, Int A, Int B, typename... Fs>
 constexpr auto operator*(F f, Multiplication<Constant<A, B>, Fs...> y) {
@@ -136,7 +143,19 @@ constexpr auto operator*(Multiplication<Fs...> f, G g) {
     if constexpr (detail::is_constant<G>::value) {
         return g*f;
     } else {
-        return Multiplication<Fs..., G>(f, g);
+        constexpr static auto match_found = (std::is_same_v<Fs, G> || ...);
+
+        if constexpr (false == match_found) {
+            constexpr static auto power_found = (detail::is_power<Fs, G>::value || ...);
+
+            if constexpr (false == power_found) {
+                return Multiplication<Fs..., G>(f, g);
+            } else {
+                return f.get<0>()*(f.sub_product<1, sizeof...(Fs)>()*g);
+            }
+        } else {
+            return f.get<0>()*(f.sub_product<1, sizeof...(Fs)>()*g);
+        }
     }
 }
 
@@ -149,12 +168,26 @@ constexpr auto operator*(G g, Multiplication<Fs...> f) {
     } else if constexpr (std::is_same_v<decltype(g), Constant<1>>) {
         return f;
     } else {
-        return Multiplication<G, Fs...>(g, f);
+        constexpr static auto match_found = (std::is_same_v<Fs, G> || ...);
+
+        if constexpr (false == match_found) {
+            constexpr static auto power_found = (detail::is_power<Fs, G>::value || ...);
+
+            if constexpr (false == power_found) {
+                return Multiplication<G, Fs...>(g, f);
+            } else {
+                return f.get<0>()*(g*f.sub_product<1, sizeof...(Fs)>());
+            }
+        } else {
+            return f.get<0>()*(g*f.sub_product<1, sizeof...(Fs)>());
+        }
     }
 }
 
 template <typename... Fs, typename... Gs>
-constexpr auto operator*(Multiplication<Fs...> lhs, Multiplication<Gs...> rhs) { return Multiplication<Fs..., Gs...>(lhs, rhs); }
+constexpr auto operator*(Multiplication<Fs...> lhs, Multiplication<Gs...> rhs) {
+    return (lhs*rhs.get<0>())*rhs.sub_product<1, sizeof...(Gs)>();
+}
 
 // Division with common factors
 template <typename F, typename G, typename H>
@@ -300,6 +333,22 @@ constexpr auto operator*(F lhs, G rhs) {
         return Multiplication<F, G>(lhs, rhs);
     }
 }
+
+namespace detail {
+
+template <typename T, typename U>
+struct is_multiple : std::false_type {};
+
+template <Int A, Int B, typename... Fs>
+struct is_multiple<Multiplication<Fs...>, Multiplication<Constant<A, B>, Fs...>> : std::true_type {};
+
+template <Int A, Int B, typename... Fs>
+struct is_multiple<Multiplication<Constant<A, B>, Fs...>, Multiplication<Fs...>> : std::true_type {};
+
+template <Int A, Int B, Int C, Int D, typename... Fs>
+struct is_multiple<Multiplication<Constant<A, B>, Fs...>, Multiplication<Constant<C, D>, Fs...>> : std::true_type {};
+
+}   //detail
 
 }   // operators
 }   // fields

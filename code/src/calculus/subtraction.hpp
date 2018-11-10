@@ -5,6 +5,8 @@
 #include "addition.hpp"
 #include "multiplication.hpp"
 
+#include <ostream>
+
 // C headers
 #include <cstdint>
 
@@ -27,6 +29,11 @@ public:
     G rhs;
 };
 
+template <typename F, typename G>
+auto operator<<(std::ostream& os, Subtraction<F, G> y) -> std::ostream& {
+    os << "(" << y.lhs << " - " << y.rhs << ")";
+    return os;
+}
 
 // -------------------------------------------------------------------------------------------------
 //                                      - operations

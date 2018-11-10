@@ -37,6 +37,18 @@ class Field {
     Hamiltonian H_;
 };
 
+template <typename Hamiltonian, Int N>
+auto operator<<(std::ostream& os, Field<Hamiltonian, N>) -> std::ostream& {
+    if constexpr (N == 0) {
+        os << "y";
+    } else if constexpr (N == 1) {
+        os << "d_dx(y)";
+    } else {
+        os << "d_dx<" << N << ">(y)";
+    }
+    return os;
+}
+
 template <typename Hamiltonian>
 constexpr auto make_field(Hamiltonian H) { return Field<Hamiltonian>{H}; }
 

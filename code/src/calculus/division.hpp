@@ -4,6 +4,7 @@
 #include "multiplication.hpp"
 
 // C++ headers
+#include <ostream>
 #include <type_traits>
 
 // C headers
@@ -34,6 +35,11 @@ class Division {
     static_assert(detail::is_constant<std::decay_t<G>>::value == false, "Division by constants should never occur as they can always be cast as a multiplication.");
 };
 
+template <typename F, typename G>
+auto operator<<(std::ostream& os, Division<F, G> y) -> std::ostream& {
+    os << "(" << y.lhs << "/" << y.rhs << ")";
+    return os;
+}
 
 
 // -------------------------------------------------------------------------------------------------

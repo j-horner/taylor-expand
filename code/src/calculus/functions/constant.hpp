@@ -8,6 +8,7 @@
 #include "../../util/util.hpp"
 
 // C++ headers
+#include <ostream>
 #include <ratio>
 #include <utility>
 
@@ -64,6 +65,16 @@ constexpr auto factorial(Constant<N>) {
     }
 }
 
+template <Int A, Int B>
+auto operator<<(std::ostream& os, Constant<A, B>) -> std::ostream& {
+    if constexpr (B == 1) {
+        os << A;
+    } else {
+        os << "(" << A << "/" << B << ")";
+    }
+
+    return os;
+}
 
 namespace literals {
 namespace detail {
