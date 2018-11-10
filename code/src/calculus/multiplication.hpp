@@ -313,6 +313,12 @@ constexpr auto operator*(Power<F, N> lhs, Multiplication<Power<F, N>, Gs...> rhs
     return Power<F, 2*N>{lhs}*rhs.sub_product<1, sizeof...(Gs) + 1>();
 }
 
+template <Int A, Int B, Int C, Int D, Int N, typename... Fs>
+constexpr auto operator*(Constant<A, B> lhs, Power<Multiplication<Constant<C, D>, Fs...>, N> rhs) {
+    constexpr auto n = Constant<N>{};
+    return (lhs*(rhs.f().get<0>()^n))*(rhs.f().sub_product<1, sizeof...(Fs) + 1>()^n);
+}
+
 // Main Multiplication
 template <typename F, typename G>
 constexpr auto operator*(F lhs, G rhs) {

@@ -19,6 +19,9 @@ class Constant;
 template <typename F, Int N>
 class Power;
 
+template <typename... Fs>
+class Multiplication;
+
 template <typename F, Int N>
 class Power {
     static_assert(std::is_same_v<F, Constant<0>> == false, "0 should not have powers taken! 0^N: -> 0 for N > 0, -> 1 for N = 0 and is undefined for N < 0.");
@@ -58,7 +61,7 @@ class Power {
 
 template <typename F, Int N>
 auto operator<<(std::ostream& os, Power<F, N> y) -> std::ostream& {
-    os << y.f() << "^{" << N << "}";
+    os << "(" << y.f() << ")" << "^{" << N << "}";
     return os;
 }
 

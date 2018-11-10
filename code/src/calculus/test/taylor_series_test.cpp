@@ -3,6 +3,7 @@
 #include "../multiplication.hpp"
 #include "../comparison.hpp"
 #include "../functions/linear.hpp"
+#include "../functions/power.hpp"
 
 
 #include <gtest/gtest.h>
@@ -118,15 +119,18 @@ TEST_F(TaylorSeriesTest, Exponential_Is_Correct) {
 }
 
 
-TEST_F(TaylorSeriesTest, Geometric_Series_Is_Correct) {
+TEST_F(TaylorSeriesTest, Exponential_2_Is_Correct) {
     using namespace operators;
     using namespace literals;
 
-    constexpr auto H = [] (auto phi) { return phi*phi; };
+    // constexpr static auto ln2 = 0.69314718055994530941723212145818_c;
+    constexpr static auto ln2 = 0.6931_c;
+
+    constexpr auto H = [] (auto phi) { return ln2*phi; };
 
     constexpr auto phi_0 = 1_c;
 
-    constexpr auto phi_exact = [] (double t) { return 1.0/(1.0 - t); };
+    constexpr auto phi_exact = [] (double t) { return std::exp2(t); };
 
     {
         constexpr auto y0 = taylor_expand<0>(H, phi_0);
@@ -134,14 +138,44 @@ TEST_F(TaylorSeriesTest, Geometric_Series_Is_Correct) {
         constexpr auto y2 = taylor_expand<2>(H, phi_0);
         constexpr auto y3 = taylor_expand<3>(H, phi_0);
 
-        static_assert(y0 == 1_c);
-        static_assert(y1 == 1_c + t);
-        static_assert(y2 == 1_c + t + t*t);
-        static_assert(y3 == 1_c + t + t*t + t*t*t);
+        constexpr auto x = ln2*t;
+
+        static_assert(y0 == 1);
+        static_assert(y1 == 1_c + x);
+        static_assert(y2 == 1_c + x + (x^2_c)/2_c);
+        static_assert(y3 == 1_c + x + (x^2_c)/2_c + (x^3_c)/6_c);
+
+        constexpr auto phi = taylor_expand<4>(H, phi_0);
+
+        for (auto t : {-0.9, -0.75, -0.5, -0.2, -0.1, 0.0, 0.1, 0.2, 0.5, 0.75, 0.9}) {
+            EXPECT_NEAR(phi(0, 0, t), phi_exact(t), std::abs(util::pow(t, 4))) << "t = " << t << std::endl;;      // do this properly!
+        }
+    }
+}
+
+TEST_F(TaylorSeriesTest, Exponential_Minus_One_Is_Correct) {
+    using namespace operators;
+    using namespace literals;
+
+    constexpr auto H = [] (auto phi) { return 1_c + phi; };
+
+    constexpr auto phi_0 = 0_c;
+
+    constexpr auto phi_exact = [] (double t) { return std::expm1(t); };
+
+    {
+        constexpr auto y0 = taylor_expand<0>(H, phi_0);
+        constexpr auto y1 = taylor_expand<1>(H, phi_0);
+        constexpr auto y2 = taylor_expand<2>(H, phi_0);
+        constexpr auto y3 = taylor_expand<3>(H, phi_0);
+        static_assert(y0 == 0);
+        static_assert(y1 == t);
+        static_assert(y2 == t + (t^2_c)/2_c);
+        static_assert(y3 == t + (t^2_c)/2_c + (t^3_c)/6_c);
 
         constexpr auto phi = taylor_expand<20>(H, phi_0);
 
-        for (auto t : {-0.9, -0.75, -0.5, -0.2, -0.1, 0.0, 0.1, 0.2, 0.5}) {
+        for (auto t : {-0.9, -0.75, -0.5, -0.2, -0.1, 0.0, 0.1, 0.2, 0.5, 0.75, 0.9}) {
             EXPECT_NEAR(phi(0, 0, t), phi_exact(t), std::abs(util::pow(t, 20))) << "t = " << t << std::endl;;      // do this properly!
         }
     }
@@ -172,6 +206,36 @@ TEST_F(TaylorSeriesTest, Logarithm_Is_Correct) {
 
         for (auto t : {-0.9, -0.75, -0.5, -0.2, -0.1, 0.0, 0.1, 0.2, 0.5, 0.75, 0.9}) {
             EXPECT_NEAR(phi(0, 0, t), phi_exact(t), std::abs(util::pow(t, 15))) << "t = " << t << std::endl;;      // do this properly!
+        }
+    }
+}
+
+
+TEST_F(TaylorSeriesTest, Geometric_Series_Is_Correct) {
+    using namespace operators;
+    using namespace literals;
+
+    constexpr auto H = [] (auto phi) { return phi*phi; };
+
+    constexpr auto phi_0 = 1_c;
+
+    constexpr auto phi_exact = [] (double t) { return 1.0/(1.0 - t); };
+
+    {
+        constexpr auto y0 = taylor_expand<0>(H, phi_0);
+        constexpr auto y1 = taylor_expand<1>(H, phi_0);
+        constexpr auto y2 = taylor_expand<2>(H, phi_0);
+        constexpr auto y3 = taylor_expand<3>(H, phi_0);
+
+        static_assert(y0 == 1_c);
+        static_assert(y1 == 1_c + t);
+        static_assert(y2 == 1_c + t + t*t);
+        static_assert(y3 == 1_c + t + t*t + t*t*t);
+
+        constexpr auto phi = taylor_expand<20>(H, phi_0);
+
+        for (auto t : {-0.9, -0.75, -0.5, -0.2, -0.1, 0.0, 0.1, 0.2, 0.5}) {
+            EXPECT_NEAR(phi(0, 0, t), phi_exact(t), std::abs(util::pow(t, 20))) << "t = " << t << std::endl;;      // do this properly!
         }
     }
 }
@@ -286,6 +350,7 @@ TEST_F(TaylorSeriesTest, Partial_Derivatives_Is_Correct) {
         static_assert(y3 == phi_0 + d_dx<2>(phi_0)*t + d_dx<4>(phi_0)*(t*t)/2_c + d_dx<6>(phi_0)*(t^3_c)/6_c);
     }
 }
+
 
 }   // test
 }   // fields
