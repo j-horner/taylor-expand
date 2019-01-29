@@ -22,6 +22,7 @@ class TaylorSeriesTest : public ::testing::Test {
  protected:
 };
 
+
 TEST_F(TaylorSeriesTest, Series_Expansion_Is_Correct) {
     using namespace operators;
     using namespace literals;
@@ -118,7 +119,6 @@ TEST_F(TaylorSeriesTest, Exponential_Is_Correct) {
     }
 }
 
-
 TEST_F(TaylorSeriesTest, Exponential_2_Is_Correct) {
     using namespace operators;
     using namespace literals;
@@ -209,7 +209,6 @@ TEST_F(TaylorSeriesTest, Logarithm_Is_Correct) {
         }
     }
 }
-
 
 TEST_F(TaylorSeriesTest, Geometric_Series_Is_Correct) {
     using namespace operators;
@@ -331,26 +330,6 @@ TEST_F(TaylorSeriesTest, Tan_Is_Correct) {
         }
     }
 }
-
-TEST_F(TaylorSeriesTest, Partial_Derivatives_Is_Correct) {
-    using namespace operators;
-    using namespace literals;
-
-    constexpr auto H = [] (auto phi) { return d_dx<2>(phi); };
-
-    constexpr auto phi_0 = (1_c - x*x)^(-1_c);
-    {
-        constexpr auto y0 = taylor_expand<0>(H, phi_0);
-        constexpr auto y1 = taylor_expand<1>(H, phi_0);
-        constexpr auto y2 = taylor_expand<2>(H, phi_0);
-        constexpr auto y3 = taylor_expand<3>(H, phi_0);
-        static_assert(y0 == phi_0);
-        static_assert(y1 == phi_0 + d_dx<2>(phi_0)*t);
-        static_assert(y2 == phi_0 + d_dx<2>(phi_0)*t + d_dx<4>(phi_0)*(t*t)/2_c);
-        static_assert(y3 == phi_0 + d_dx<2>(phi_0)*t + d_dx<4>(phi_0)*(t*t)/2_c + d_dx<6>(phi_0)*(t^3_c)/6_c);
-    }
-}
-
 
 }   // test
 }   // fields

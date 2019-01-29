@@ -23,28 +23,88 @@ constexpr auto operator==(F lhs, G rhs) {
     }
 }
 
+template <typename... Fs>
+class Addition;
 
 // https://stackoverflow.com/questions/40117987/how-do-i-compare-tuples-for-equivalent-types-disregarding-type-order#40118456
 namespace detail {
+
+template <typename... Ts>
+class equivalent_types {
+ public:
+    constexpr static auto value = false;
+};
+
+template <typename... Ts, typename... Us>
+class equivalent_types<Addition<Ts...>, Addition<Us...>> {
+ public:
+    constexpr static auto value = equivalent_types<std::tuple<Ts...>, std::tuple<Us...>>::value;
+};
+
+template <typename... Ts, typename... Us>
+class equivalent_types<Multiplication<Ts...>, Multiplication<Us...>> {
+ public:
+    constexpr static auto value = equivalent_types<std::tuple<Ts...>, std::tuple<Us...>>::value;
+};
 
 template <typename T, typename Tuple>
 struct type_counter;
 
 template <typename T, typename ... Ts>
-struct type_counter<T, std::tuple<Ts...>> : std::integral_constant<std::size_t, (... + std::is_same<T, Ts>::value)> {};
+struct type_counter<T, std::tuple<Ts...>> : std::integral_constant<std::size_t, (... + equivalent_types<T, Ts>::value)> {};
 
 template <typename Tuple1, typename Tuple2, std::size_t... Is>
-constexpr bool equivalent_types(std::index_sequence<Is...>) {
-    return (... && (type_counter<std::tuple_element_t<Is, Tuple1>, Tuple1>::value == type_counter<std::tuple_element_t<Is, Tuple1>, Tuple2>::value));
-}
+class equivalent_types<Tuple1, Tuple2, std::index_sequence<Is...>> {
+    template <std::size_t I>
+    constexpr static auto type_matched() { return (type_counter<std::tuple_element_t<I, Tuple1>, Tuple1>::value == type_counter<std::tuple_element_t<I, Tuple1>, Tuple2>::value); }
+
+    template <std::size_t... Js>
+    constexpr static auto check_types = (type_matched<Js>() && ...);
+
+ public:
+    constexpr static auto value = check_types<Is...>;
+};
+
+template <typename... Ts, typename... Us>
+class equivalent_types<std::tuple<Ts...>, std::tuple<Us...>> {
+    constexpr static auto s1 = sizeof...(Ts);
+    constexpr static auto s2 = sizeof...(Us);
+ public:
+
+    constexpr static auto value = (s1 == s2) && equivalent_types<std::tuple<Ts...>, std::tuple<Us...>, std::make_index_sequence<std::min(s1, s2)>>::value;
+};
+
+
+/*template <typename T, typename Tuple>
+struct type_counter;
+
+template <typename T, typename ... Ts>
+struct type_counter<T, std::tuple<Ts...>> : std::integral_constant<std::size_t, (... + std::is_same<T, Ts>::value)> {};
+
+template <typename... Ts>
+class equivalent_types;
+
+template <typename Tuple1, typename Tuple2, std::size_t... Is>
+class equivalent_types<Tuple1, Tuple2, std::index_sequence<Is...>> {
+    template <std::size_t I>
+    constexpr static auto type_matched() { return (type_counter<std::tuple_element_t<I, Tuple1>, Tuple1>::value == type_counter<std::tuple_element_t<I, Tuple1>, Tuple2>::value); }
+
+    template <std::size_t... Js>
+    constexpr static auto check_types = (type_matched<Js>() && ...);
+
+ public:
+    constexpr static auto value = check_types<Is...>;
+};
 
 template <typename Tuple1, typename Tuple2>
-constexpr bool equivalent_types() {
-    constexpr auto s1 = std::tuple_size<Tuple1>::value;
-    constexpr auto s2 = std::tuple_size<Tuple2>::value;
+class equivalent_types<Tuple1, Tuple2> {
+    constexpr static auto s1 = std::tuple_size<Tuple1>::value;
+    constexpr static auto s2 = std::tuple_size<Tuple2>::value;
+ public:
 
-    return (s1 == s2) && equivalent_types<Tuple1, Tuple2>(std::make_index_sequence<std::min(s1, s2)>());
-}
+    constexpr static auto value = (s1 == s2) && equivalent_types<Tuple1, Tuple2, std::make_index_sequence<std::min(s1, s2)>>::value;
+};*/
+
 
 }   //detail
 
@@ -59,7 +119,7 @@ constexpr auto operator==(Addition<Fs...>, Addition<Gs...>) {
     if constexpr (sizeof...(Fs) != sizeof...(Gs)) {
         return false;
     } else {
-        return detail::equivalent_types<std::tuple<Fs...>, std::tuple<Gs...>>();
+        return detail::equivalent_types<std::tuple<Fs...>, std::tuple<Gs...>>::value;
     }
 }
 
@@ -68,7 +128,7 @@ constexpr auto operator==(Multiplication<Fs...>, Multiplication<Gs...>) {
     if constexpr (sizeof...(Fs) != sizeof...(Gs)) {
         return false;
     } else {
-        return detail::equivalent_types<std::tuple<Fs...>, std::tuple<Gs...>>();
+        return detail::equivalent_types<std::tuple<Fs...>, std::tuple<Gs...>>::value;
     }
 }
 

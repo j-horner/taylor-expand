@@ -46,6 +46,10 @@ protected:
     constexpr static auto d = D{};
 };
 
+/*struct H {
+    template <typename T> constexpr auto operator()(T phi) const { return Constant<2>{}*phi; }
+};*/
+
 TEST_F(DerivativeTest, Derivative_Of_Sums_Is_Correct) {
     constexpr auto da_dx = dA_dx{};
     constexpr auto db_dx = dB_dx{};
@@ -236,7 +240,9 @@ TEST_F(DerivativeTest, Time_Derivative_Of_Fields_Is_Correct) {
         static_assert(d_dt<2>(phi) == 2_c*t*phi + (x + t*t)*(x + t*t)*phi);
 
         // NOTE:    During d_dt<3>(phi), the code currently does not do a full simplification
+        std::cout << "\n" << d_dt<3>(phi) << "\n" << std::endl;
         static_assert(d_dt<3>(phi) == ((2_c*phi) + (2_c*t*(x + t*t)*phi)) + ((4_c*(x + t*t)*t*phi) + ((x + t*t)*(x + t*t)*(x + t*t)*phi)));
+        static_assert(d_dt<3>(phi) == 2_c*phi + 6_c*t*(x + t*t)*phi + (x + t*t)*(x + t*t)*(x + t*t)*phi);
     }
     {
         constexpr auto H = [] (auto phi) { return d_dx<2>(phi); };
@@ -255,6 +261,7 @@ TEST_F(DerivativeTest, Time_Derivative_Of_Fields_Is_Correct) {
         static_assert(d_dt<20>(phi) == d_dx<40>(phi));
         static_assert(d_dt<100>(phi) == d_dx<200>(phi));     // compiles but takes a few seconds
     }
+
 }
 
 }   // test

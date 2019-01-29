@@ -28,6 +28,7 @@ class Power {
     static_assert(std::is_same_v<F, Constant<1>> == false, "1 should not have powers taken! 1^N: -> 1 for and N.");
 
     static_assert(N != 0, "F^0 -> 1");
+    static_assert(N != 1, "F^1 -> F");
 
  public:
 
@@ -77,7 +78,13 @@ template <typename F, Int N>
 constexpr auto operator^(F f, Constant<N, 1>) { return Power<F, N>{f}; }
 
 template <typename F, Int N, Int M>
-constexpr auto operator^(Power<F, N> f, Constant<M, 1>) { return Power<F, N*M>{f}; }
+constexpr auto operator^(Power<F, N> f, Constant<M, 1>) {
+    if constexpr (N == -1) {
+        return f.f();
+    } else {
+        return Power<F, N*M>{f};
+    }
+}
 
 // power operator with integers, if rational powers are needed do it later
 template <Int A, Int N>
@@ -85,6 +92,8 @@ constexpr auto operator^(Constant<A, 1>, Constant<N, 1>) {
     if constexpr (0 == N) {
         // anything to power 0 is 1
         return Constant<1, 1>{};
+    } else if constexpr (-1 == N) {
+        return Constant<1, 1>{} / Constant<A, 1>{};
     } else if constexpr (0 > N) {
         // negative powers mean divide
         return Constant<1, 1>{} / (Constant<A, 1>{}^Constant<-N, 1>{});

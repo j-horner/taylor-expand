@@ -75,7 +75,11 @@ class Multiplication {
     constexpr auto multiply_impl(std::index_sequence<Is...>, Tuple args) const { return (std::apply(get<Is>(), args)*...);}
 
     template <typename D, std::size_t... Is>
-    constexpr auto derivative_impl(D d, std::index_sequence<Is...>) const { return (product_rule_term<Is>(d) + ...); }
+    constexpr auto derivative_impl(D d, std::index_sequence<Is...>) const {
+        // return (((*this)*d(get<Is>())*(get<Is>()^(-1_c))) + ... );
+
+        return (product_rule_term<Is>(d) + ...);
+    }
 
     template <std::size_t I, typename D>
     constexpr auto product_rule_term(D d) const {
@@ -185,8 +189,15 @@ constexpr auto operator*(G g, Multiplication<Fs...> f) {
 }
 
 template <typename... Fs, typename... Gs>
-constexpr auto operator*(Multiplication<Fs...> lhs, Multiplication<Gs...> rhs) {
-    return (lhs*rhs.get<0>())*rhs.sub_product<1, sizeof...(Gs)>();
+constexpr auto operator*(Multiplication<Fs...> lhs, Multiplication<Gs...> rhs) -> std::enable_if_t<std::is_same_v<Multiplication<Fs...>,
+                                                                                                                  Multiplication<Gs...>> == false,
+                                                                                                   decltype((lhs*rhs.get<0>())*rhs.sub_product<1, sizeof...(Gs)>())> {
+   return (lhs*rhs.get<0>())*rhs.sub_product<1, sizeof...(Gs)>();
+}
+
+template <typename... Fs>
+constexpr auto operator*(Multiplication<Fs...> lhs, Multiplication<Fs...>) {
+    return Power<Multiplication<Fs...>, 2>{lhs};
 }
 
 // Division with common factors
@@ -245,7 +256,12 @@ constexpr auto operator*(F lhs, F) {
 
 template <typename F, Int N>
 constexpr auto operator*(Power<F, N> lhs, F) {
-    return Power<F, N + 1>{lhs};
+    if constexpr (N == -1) {
+        using namespace literals;
+        return 1_c;
+    } else {
+        return Power<F, N + 1>{lhs};
+    }
 }
 
 template <typename F, Int N>
@@ -275,7 +291,11 @@ constexpr auto operator*(F lhs, Multiplication<F, Gs...> rhs) {
 
 template <typename F, typename G, Int N>
 constexpr auto operator*(Multiplication<F, G> lhs, Power<G, N> rhs) {
-    return lhs.get<0>()*Power<G, N + 1>{rhs};
+    if constexpr (-1 == N) {
+        return lhs.get<0>();
+    } else {
+        return lhs.get<0>()*Power<G, N + 1>{rhs};
+    }
 }
 
 template <typename F, typename... Gs, Int N>
@@ -295,7 +315,11 @@ constexpr auto operator*(F lhs, Multiplication<Power<F, N>, Gs...> rhs) {
 
 template <typename F, typename G, Int N, Int M>
 constexpr auto operator*(Multiplication<F, Power<G, N>> lhs, Power<G, M> rhs) {
-    return lhs.get<0>()*Power<G, N + M>{rhs};
+    if constexpr (N + M == 1) {
+        return lhs.get<0>()*rhs.f();
+    } else {
+        return lhs.get<0>()*Power<G, N + M>{rhs};
+    }
 }
 
 template <typename F, typename... Gs, Int N, Int M>
