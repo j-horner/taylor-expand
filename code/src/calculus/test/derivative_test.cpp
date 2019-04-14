@@ -240,7 +240,12 @@ TEST_F(DerivativeTest, Time_Derivative_Of_Fields_Is_Correct) {
         static_assert(d_dt<2>(phi) == 2_c*t*phi + (x + t*t)*(x + t*t)*phi);
 
         // NOTE:    During d_dt<3>(phi), the code currently does not do a full simplification
+
+        std::cout << "\n" << d_dt<2>(phi) << "\n" << std::endl;
         std::cout << "\n" << d_dt<3>(phi) << "\n" << std::endl;
+
+
+
         static_assert(d_dt<3>(phi) == ((2_c*phi) + (2_c*t*(x + t*t)*phi)) + ((4_c*(x + t*t)*t*phi) + ((x + t*t)*(x + t*t)*(x + t*t)*phi)));
         static_assert(d_dt<3>(phi) == 2_c*phi + 6_c*t*(x + t*t)*phi + (x + t*t)*(x + t*t)*(x + t*t)*phi);
     }
