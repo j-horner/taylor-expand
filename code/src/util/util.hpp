@@ -29,37 +29,38 @@ constexpr auto pow(T x, Int n) noexcept {
     return y;
 }
 
-template <typename T, typename... Ts>
-constexpr auto count(std::tuple<Ts...> t) noexcept -> int;
 
 
 namespace detail {
 
+
+template <typename... Ts>
+struct count : std::integral_constant<int, 0> {};
+
 template <typename T, std::size_t... Idx, typename... Ts>
-constexpr auto count(std::index_sequence<Idx...>, std::tuple<Ts...>) noexcept {
-    return (static_cast<int>(std::is_same_v<T, std::decay_t<std::tuple_element_t<Idx, std::tuple<Ts...>>>>) + ...);
-}
+struct count<T, std::index_sequence<Idx...>, std::tuple<Ts...>> : std::integral_constant<int, (static_cast<int>(std::is_same_v<T, std::decay_t<std::tuple_element_t<Idx, std::tuple<Ts...>>>>) + ...)>{};
 
 }   // detail
 
+
+template <typename... Ts>
+struct count : std::integral_constant<int, 0> {};
+
+template <typename T>
+struct count<T, std::tuple<>> : std::integral_constant<int, 0> {};
+
 template <typename T, typename... Ts>
-constexpr auto count(std::tuple<Ts...> t) noexcept -> int {
-    if constexpr (sizeof...(Ts) == 0) {
-        return 0;
-    } else {
-        return detail::count<T>(std::make_index_sequence<sizeof...(Ts)>{}, t);
-    }
-}
+struct count<T, std::tuple<Ts...>> : std::integral_constant<int, ((sizeof...(Ts) == 0) ? 0
+                                                                                       : detail::count<T, std::make_index_sequence<sizeof...(Ts)>, std::tuple<Ts...>>::value)> {};
+
+template <typename T1, typename T2>
+struct is_permutation : std::false_type {};
 
 
 template <typename... Ts, typename... Us>
-constexpr auto is_permutation(std::tuple<Ts...> t1, std::tuple<Us...> t2) noexcept {
-    if constexpr (sizeof...(Ts) > sizeof...(Us)) {
-        return ((count<Ts>(t1) == count<Ts>(t2)) && ...);
-    } else {
-        return ((count<Us>(t1) == count<Us>(t2)) && ...);
-    }
-}
+struct is_permutation<std::tuple<Ts...>, std::tuple<Us...>> : std::bool_constant<(sizeof...(Ts) > sizeof...(Us)) ? ((count<Ts, std::tuple<Ts...>>::value == count<Ts, std::tuple<Us...>>::value) && ...)
+                                                                                                                : ((count<Us, std::tuple<Ts...>>::value == count<Us, std::tuple<Us...>>::value) && ...)> {};
+
 
 }   // util
 }   // fields

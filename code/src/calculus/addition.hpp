@@ -288,6 +288,19 @@ constexpr auto operator+(Multiplication<F, Gs...> lhs, Multiplication<F, Gs...> 
     return (2_c*lhs.get<0>())*rhs.sub_product<1, sizeof...(Gs) + 1>();
 }
 
+template <typename... Fs, typename... Gs>
+constexpr auto operator+(Multiplication<Fs...> lhs, Multiplication<Gs...> rhs) -> std::enable_if_t<util::is_permutation<std::tuple<Fs...>,
+                                                                                                                        std::tuple<Gs...>>::value, Multiplication<Constant<2, 1>, Fs...>> {
+    using namespace literals;
+    return 2_c*lhs;
+}
+
+template <Int A, Int B, Int C, Int D, typename... Fs, typename... Gs>
+constexpr auto operator+(Multiplication<Constant<A, B>, Fs...> lhs, Multiplication<Constant<C, D>, Gs...> rhs) -> std::enable_if_t<util::is_permutation<std::tuple<Fs...>,
+                                                                                                                                                        std::tuple<Gs...>>::value, Multiplication<decltype(Constant<A, B>{} + Constant<C, D>{}), Fs...>> {
+    return (Constant<A, B>{} + Constant<C, D>{})*lhs;
+}
+
 // Division with common factors
 template <typename F, typename G>
 constexpr auto operator+(Division<F, G> y, F f) {
