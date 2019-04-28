@@ -30,6 +30,9 @@ constexpr auto pow(T x, Int n) noexcept {
 }
 
 
+template <typename T1, typename T2>
+struct is_same : std::is_same<T1, T2> {};
+
 
 namespace detail {
 
@@ -38,7 +41,7 @@ template <typename... Ts>
 struct count : std::integral_constant<int, 0> {};
 
 template <typename T, std::size_t... Idx, typename... Ts>
-struct count<T, std::index_sequence<Idx...>, std::tuple<Ts...>> : std::integral_constant<int, (static_cast<int>(std::is_same_v<T, std::decay_t<std::tuple_element_t<Idx, std::tuple<Ts...>>>>) + ...)>{};
+struct count<T, std::index_sequence<Idx...>, std::tuple<Ts...>> : std::integral_constant<int, (static_cast<int>(util::is_same<T, std::decay_t<std::tuple_element_t<Idx, std::tuple<Ts...>>>>::value) + ...)>{};
 
 }   // detail
 

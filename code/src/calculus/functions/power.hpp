@@ -69,7 +69,10 @@ auto operator<<(std::ostream& os, Power<F, N> y) -> std::ostream& {
 namespace operators {
 
 template <typename F>
-constexpr auto operator^(F, Constant<0, 1>) { using namespace literals; return 1_c; }
+constexpr auto operator^(F, Constant<0, 1>) {
+    using namespace literals;
+    return 1_c;
+}
 
 template <typename F>
 constexpr auto operator^(F f, Constant<1, 1>) { return f; }
@@ -116,11 +119,20 @@ struct is_power : std::false_type {};
 template <typename F, Int N>
 struct is_power<Power<F, N>, F> : std::true_type {};
 
+template <typename F, typename G, Int N>
+struct is_power<Power<F, N>, G> : std::bool_constant<util::is_same<F, G>::value> {};
+
 template <typename F, Int N>
 struct is_power<F, Power<F, N>> : std::true_type {};
 
+template <typename F, typename G, Int N>
+struct is_power<F, Power<G, N>> : std::bool_constant<util::is_same<F, G>::value> {};
+
 template <typename F, Int N, Int M>
 struct is_power<Power<F, N>, Power<F, M>> : std::true_type {};
+
+template <typename F, typename G, Int N, Int M>
+struct is_power<Power<F, N>, Power<G, M>> : std::bool_constant<util::is_same<F, G>::value> {};
 
 }   //detail
 

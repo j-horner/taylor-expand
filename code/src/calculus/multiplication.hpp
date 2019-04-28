@@ -165,14 +165,12 @@ constexpr auto operator*(Multiplication<Fs...> f, G g) {
 
 template <typename... Fs, typename G>
 constexpr auto operator*(G g, Multiplication<Fs...> f) {
-    static_assert(sizeof(f) >= 0, "Check to silence unused parameter...");
-
-    if constexpr (std::is_same_v<decltype(g), Constant<0>>) {
+    if constexpr (std::is_same_v<G, Constant<0>>) {
         return 0_c;
-    } else if constexpr (std::is_same_v<decltype(g), Constant<1>>) {
+    } else if constexpr (std::is_same_v<G, Constant<1>>) {
         return f;
     } else {
-        constexpr static auto match_found = (std::is_same_v<Fs, G> || ...);
+        constexpr static auto match_found = (util::is_same<Fs, G>::value || ...);
 
         if constexpr (false == match_found) {
             constexpr static auto power_found = (detail::is_power<Fs, G>::value || ...);
@@ -188,16 +186,18 @@ constexpr auto operator*(G g, Multiplication<Fs...> f) {
     }
 }
 
-template <typename... Fs, typename... Gs>
-constexpr auto operator*(Multiplication<Fs...> lhs, Multiplication<Gs...> rhs) -> std::enable_if_t<std::is_same_v<Multiplication<Fs...>,
-                                                                                                                  Multiplication<Gs...>> == false,
-                                                                                                   decltype((lhs*rhs.get<0>())*rhs.sub_product<1, sizeof...(Gs)>())> {
-   return (lhs*rhs.get<0>())*rhs.sub_product<1, sizeof...(Gs)>();
-}
-
 template <typename... Fs>
 constexpr auto operator*(Multiplication<Fs...> lhs, Multiplication<Fs...>) {
     return Power<Multiplication<Fs...>, 2>{lhs};
+}
+
+template <typename... Fs, typename... Gs>
+constexpr auto operator*(Multiplication<Fs...> lhs, Multiplication<Gs...> rhs) {
+    if constexpr (util::is_same<Multiplication<Fs...>, Multiplication<Gs...>>::value) {
+        return Power<Multiplication<Fs...>, 2>{lhs};
+    } else {
+        return (lhs*rhs.get<0>())*rhs.sub_product<1, sizeof...(Gs)>();
+    }
 }
 
 // Division with common factors
@@ -372,11 +372,20 @@ struct is_multiple : std::false_type {};
 template <Int A, Int B, typename... Fs>
 struct is_multiple<Multiplication<Fs...>, Multiplication<Constant<A, B>, Fs...>> : std::true_type {};
 
+template <Int A, Int B, typename... Fs, typename... Gs>
+struct is_multiple<Multiplication<Fs...>, Multiplication<Constant<A, B>, Gs...>> : util::is_same<Multiplication<Fs...>, Multiplication<Gs...>> {};
+
 template <Int A, Int B, typename... Fs>
 struct is_multiple<Multiplication<Constant<A, B>, Fs...>, Multiplication<Fs...>> : std::true_type {};
 
+template <Int A, Int B, typename... Fs, typename... Gs>
+struct is_multiple<Multiplication<Constant<A, B>, Fs...>, Multiplication<Gs...>> : util::is_same<Multiplication<Fs...>, Multiplication<Gs...>> {};
+
 template <Int A, Int B, Int C, Int D, typename... Fs>
 struct is_multiple<Multiplication<Constant<A, B>, Fs...>, Multiplication<Constant<C, D>, Fs...>> : std::true_type {};
+
+template <Int A, Int B, Int C, Int D, typename... Fs, typename... Gs>
+struct is_multiple<Multiplication<Constant<A, B>, Fs...>, Multiplication<Constant<C, D>, Gs...>> : util::is_same<Multiplication<Fs...>, Multiplication<Gs...>> {};
 
 }   //detail
 

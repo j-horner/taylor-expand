@@ -164,10 +164,10 @@ constexpr auto operator+(G g, Addition<Fs...> f) {
 
 template <typename G, typename... Fs>
 constexpr auto operator+(Addition<Fs...> f, G g) {
-    if constexpr (std::is_same_v<decltype(g), Constant<0>>) {
+    if constexpr (std::is_same_v<G, Constant<0>>) {
         return f;
     } else {
-        constexpr static auto match_found = (std::is_same_v<Fs, G> || ...);
+        constexpr static auto match_found = (util::is_same<Fs, G>::value || ...);
 
         if constexpr (false == match_found) {
             constexpr static auto multiple_found = (detail::is_multiple<Fs, G>::value || ...);
@@ -185,21 +185,20 @@ constexpr auto operator+(Addition<Fs...> f, G g) {
 
 template <typename... Fs, typename... Gs>
 constexpr auto operator+(Addition<Fs...> lhs, Addition<Gs...> rhs) {
-    return (lhs + rhs.get<0>()) + rhs.sub_sum<1, sizeof...(Gs)>();
+    if constexpr (util::is_same<Addition<Fs...>, Addition<Gs...>>::value) {
+        using namespace literals;
+        return 2_c*lhs;
+    } else {
+        return (lhs + rhs.get<0>()) + rhs.sub_sum<1, sizeof...(Gs)>();
+    }
 }
 
 // Subtractions with common factors
 template <typename F, typename G>
-constexpr auto operator+(Subtraction<G, F> y, F) {
-    using namespace literals;
-    return y.lhs;
-}
+constexpr auto operator+(Subtraction<G, F> y, F) { return y.lhs; }
 
 template <typename F, typename G>
-constexpr auto operator+(F f, Subtraction<G, F> y) {
-    using namespace literals;
-    return y.lhs;
-}
+constexpr auto operator+(F f, Subtraction<G, F> y) { return y.lhs; }
 
 template <typename F, typename G>
 constexpr auto operator+(Subtraction<F, G> y, F f) {
@@ -289,16 +288,14 @@ constexpr auto operator+(Multiplication<F, Gs...> lhs, Multiplication<F, Gs...> 
 }
 
 template <typename... Fs, typename... Gs>
-constexpr auto operator+(Multiplication<Fs...> lhs, Multiplication<Gs...> rhs) -> std::enable_if_t<util::is_permutation<std::tuple<Fs...>,
-                                                                                                                        std::tuple<Gs...>>::value, Multiplication<Constant<2, 1>, Fs...>> {
+constexpr auto operator+(Multiplication<Fs...> lhs, Multiplication<Gs...> rhs) -> std::enable_if_t<util::is_same<Multiplication<Fs...>, Multiplication<Gs...>>::value, Multiplication<Constant<2, 1>, Fs...>> {
     using namespace literals;
     return 2_c*lhs;
 }
 
 template <Int A, Int B, Int C, Int D, typename... Fs, typename... Gs>
-constexpr auto operator+(Multiplication<Constant<A, B>, Fs...> lhs, Multiplication<Constant<C, D>, Gs...> rhs) -> std::enable_if_t<util::is_permutation<std::tuple<Fs...>,
-                                                                                                                                                        std::tuple<Gs...>>::value, Multiplication<decltype(Constant<A, B>{} + Constant<C, D>{}), Fs...>> {
-    return (Constant<A, B>{} + Constant<C, D>{})*lhs;
+constexpr auto operator+(Multiplication<Constant<A, B>, Fs...> lhs, Multiplication<Constant<C, D>, Gs...> rhs) -> std::enable_if_t<util::is_same<Multiplication<Fs...>, Multiplication<Gs...>>::value, Multiplication<decltype(Constant<A, B>{} + Constant<C, D>{}), Fs...>> {
+    return (Constant<A, B>{} + Constant<C, D>{})*lhs.sub_product<1, sizeof...(Fs) + 1>();
 }
 
 // Division with common factors
@@ -340,9 +337,9 @@ constexpr auto operator+(Constant<A, B> lhs, Constant<A, B>) {
 // Main Addition
 template <typename F, typename G>
 constexpr auto operator+(F lhs, G rhs) {
-    if constexpr (std::is_same_v<decltype(lhs), Constant<0>>) {
+    if constexpr (std::is_same_v<F, Constant<0>>) {
         return rhs;
-    } else if constexpr (std::is_same_v<decltype(rhs), Constant<0>>) {
+    } else if constexpr (std::is_same_v<G, Constant<0>>) {
         return lhs;
     } else if constexpr (std::is_arithmetic_v<G>) {
         return static_cast<G>(lhs) + rhs;
