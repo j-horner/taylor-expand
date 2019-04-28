@@ -52,24 +52,31 @@ auto operator<<(std::ostream& os, Field<Hamiltonian, N>) -> std::ostream& {
 template <typename Hamiltonian>
 constexpr auto make_field(Hamiltonian H) { return Field<Hamiltonian>{H}; }
 
-template <typename Hamiltonian, typename Phi_0, Int... Ns>
-constexpr auto taylor_series(Hamiltonian H, Phi_0 phi_0, std::integer_sequence<Int, Ns...>) {
+template <typename Hamiltonian, typename Phi_0, typename T_0, Int... Ns>
+constexpr auto taylor_series(Hamiltonian H, Phi_0 phi_0, T_0 t_0, std::integer_sequence<Int, Ns...>) {
     static_assert(sizeof...(Ns) > 0);
 
     using namespace operators;
 
     auto phi = make_field(H);
 
-    return (... + ((d_dt<Ns>(phi)(phi_0, x, 0_c)/Constant<util::factorial(Ns)>{})*(t^Constant<Ns>{})));
+    return (... + ((d_dt<Ns>(phi)(phi_0, x, t_0)/Constant<util::factorial(Ns)>{})*(t^Constant<Ns>{})));
 }
 
 }   // detail
 
-template <Int N, typename Hamiltonian, typename Phi_0>
-constexpr auto taylor_expand(Hamiltonian H, Phi_0 phi_0) {
+template <Int N, typename Hamiltonian, typename Y_0>
+constexpr auto taylor_expand(Hamiltonian H, Y_0 y_0) {
     static_assert(N >= 0, "The 'Order' of the Taylor Series solution must be greater than zero.");
 
-    return fields::detail::taylor_series(H, phi_0, std::make_integer_sequence<Int, N + 1>{});
+    return fields::detail::taylor_series(H, y_0, 0_c, std::make_integer_sequence<Int, N + 1>{});
+}
+
+template <Int N, typename Hamiltonian, typename Y_0, typename T_0>
+constexpr auto taylor_expand(Hamiltonian H, Y_0 y_0, T_0 t_0) {
+    static_assert(N >= 0, "The 'Order' of the Taylor Series solution must be greater than zero.");
+
+    return fields::detail::taylor_series(H, y_0, t_0, std::make_integer_sequence<Int, N + 1>{});
 }
 
 }   // fields
