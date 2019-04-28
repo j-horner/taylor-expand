@@ -26,7 +26,15 @@ endif()
 
 function(add_gtest_test target)
     add_executable(${target} ${ARGN})
+
+    target_compile_options(${target} PRIVATE
+                           $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
+                                -Wall -Wextra -Werror>
+                           $<$<CXX_COMPILER_ID:MSVC>:
+                                /W4 /WX /EHsc /std:c++17 /bigobj>)
+
     target_link_libraries(${target} gtest_main)
+
 
     add_test(${target} ${target})
 
