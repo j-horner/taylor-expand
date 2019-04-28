@@ -165,6 +165,9 @@ constexpr auto operator*(Multiplication<Fs...> f, G g) {
 
 template <typename... Fs, typename G>
 constexpr auto operator*(G g, Multiplication<Fs...> f) {
+    static_assert(sizeof(g) > 0, "silence unused variable warning");
+    static_assert(sizeof(f) > 0, "silence unused variable warning");
+    
     if constexpr (std::is_same_v<G, Constant<0>>) {
         return 0_c;
     } else if constexpr (std::is_same_v<G, Constant<1>>) {
@@ -266,6 +269,8 @@ constexpr auto operator*(Power<F, N> lhs, F) {
 
 template <typename F, Int N>
 constexpr auto operator*(F, Power<F, N> rhs) {
+    static_assert(sizeof(rhs) > 0, "silence unused variable warning");
+    
     using namespace literals;
     if constexpr (N == -1) {
         return 1_c;

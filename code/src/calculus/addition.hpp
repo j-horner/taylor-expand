@@ -164,6 +164,8 @@ constexpr auto operator+(G g, Addition<Fs...> f) {
 
 template <typename G, typename... Fs>
 constexpr auto operator+(Addition<Fs...> f, G g) {
+    static_assert(sizeof(g) > 0, "silence unused variable warning");
+    
     if constexpr (std::is_same_v<G, Constant<0>>) {
         return f;
     } else {
@@ -294,7 +296,7 @@ constexpr auto operator+(Multiplication<Fs...> lhs, Multiplication<Gs...> rhs) -
 }
 
 template <Int A, Int B, Int C, Int D, typename... Fs, typename... Gs>
-constexpr auto operator+(Multiplication<Constant<A, B>, Fs...> lhs, Multiplication<Constant<C, D>, Gs...> rhs) -> std::enable_if_t<util::is_same<Multiplication<Fs...>, Multiplication<Gs...>>::value, Multiplication<decltype(Constant<A, B>{} + Constant<C, D>{}), Fs...>> {
+constexpr auto operator+(Multiplication<Constant<A, B>, Fs...> lhs, Multiplication<Constant<C, D>, Gs...>) -> std::enable_if_t<util::is_same<Multiplication<Fs...>, Multiplication<Gs...>>::value, Multiplication<decltype(Constant<A, B>{} + Constant<C, D>{}), Fs...>> {
     return (Constant<A, B>{} + Constant<C, D>{})*lhs.sub_product<1, sizeof...(Fs) + 1>();
 }
 
@@ -337,6 +339,9 @@ constexpr auto operator+(Constant<A, B> lhs, Constant<A, B>) {
 // Main Addition
 template <typename F, typename G>
 constexpr auto operator+(F lhs, G rhs) {
+    static_assert(sizeof(lhs) > 0, "silence unused variable warning");
+    static_assert(sizeof(rhs) > 0, "silence unused variable warning");
+    
     if constexpr (std::is_same_v<F, Constant<0>>) {
         return rhs;
     } else if constexpr (std::is_same_v<G, Constant<0>>) {

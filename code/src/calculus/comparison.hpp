@@ -42,11 +42,15 @@ constexpr auto operator==(Multiplication<Fs...>, Multiplication<Gs...>) { return
 
 template <typename F, typename G>
 constexpr auto operator==(F lhs, G rhs) {
+    static_assert(sizeof(lhs) > 0, "silence unused variable warning");
+    static_assert(sizeof(rhs) > 0, "silence unused variable warning");
+
     if constexpr (detail::is_constant<F>::value && std::is_arithmetic_v<G>) {
         return static_cast<G>(lhs) == rhs;
     } else if constexpr (detail::is_constant<G>::value && std::is_arithmetic_v<F>) {
         return static_cast<F>(rhs) == lhs;
     } else {
+        // use decltype to silence "unused warnings"
         return util::is_same<F, G>::value;
     }
 }
