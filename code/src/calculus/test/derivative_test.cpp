@@ -46,9 +46,6 @@ protected:
     constexpr static auto d = D{};
 };
 
-/*struct H {
-    template <typename T> constexpr auto operator()(T phi) const { return Constant<2>{}*phi; }
-};*/
 
 TEST_F(DerivativeTest, Derivative_Of_Sums_Is_Correct) {
     constexpr auto da_dx = dA_dx{};
@@ -147,124 +144,118 @@ TEST_F(DerivativeTest, Time_Derivative_Of_Fields_Is_Correct) {
     using namespace fields::detail;
 
     {
-        constexpr auto H = [] (auto phi) { return phi; };
+        constexpr auto H = [] (auto y) { return y; };
 
-        constexpr auto phi = make_field(H);
+        constexpr auto y = make_field(H);
 
-        static_assert(d_dt(phi) == H(phi));
+        static_assert(d_dt(y) == H(y));
 
-        static_assert(d_dt<0>(phi) == phi);
-        static_assert(d_dt<1>(phi) == d_dt(phi));
+        static_assert(d_dt<0>(y) == y);
+        static_assert(d_dt<1>(y) == d_dt(y));
 
         // only true because of the form of H
-        static_assert(d_dt<1>(phi) == phi);
-        static_assert(d_dt<10>(phi) == phi);
+        static_assert(d_dt<1>(y) == y);
+        static_assert(d_dt<10>(y) == y);
     }
     {
-        constexpr auto H = [] (auto phi) { return phi + 5_c; };
+        constexpr auto H = [] (auto y) { return y + 5_c; };
 
-        constexpr auto phi = make_field(H);
+        constexpr auto y = make_field(H);
 
-        static_assert(d_dt(phi) == H(phi));
+        static_assert(d_dt(y) == H(y));
 
-        static_assert(d_dt<0>(phi) == phi);
-        static_assert(d_dt<1>(phi) == d_dt(phi));
+        static_assert(d_dt<0>(y) == y);
+        static_assert(d_dt<1>(y) == d_dt(y));
 
         // only true because of the form of H
-        static_assert(d_dt<1>(phi) == phi + 5_c);
-        static_assert(d_dt<10>(phi) == phi + 5_c);
+        static_assert(d_dt<1>(y) == y + 5_c);
+        static_assert(d_dt<10>(y) == y + 5_c);
     }
     {
-        constexpr auto H = [] (auto phi) { return 2_c*phi; };
+        constexpr auto H = [] (auto y) { return 2_c*y; };
 
-        constexpr auto phi = make_field(H);
+        constexpr auto y = make_field(H);
 
-        static_assert(d_dt(phi) == H(phi));
+        static_assert(d_dt(y) == H(y));
 
-        static_assert(d_dt<0>(phi) == phi);
-        static_assert(d_dt<1>(phi) == d_dt(phi));
+        static_assert(d_dt<0>(y) == y);
+        static_assert(d_dt<1>(y) == d_dt(y));
 
         // only true because of the form of H
-        static_assert(d_dt<1>(phi) == 2_c*phi);
-        static_assert(d_dt<2>(phi) == 4_c*phi);
-        static_assert(d_dt<5>(phi) == 32_c*phi);
-        static_assert(d_dt<10>(phi) == 1024_c*phi);
+        static_assert(d_dt<1>(y) == 2_c*y);
+        static_assert(d_dt<2>(y) == 4_c*y);
+        static_assert(d_dt<5>(y) == 32_c*y);
+        static_assert(d_dt<10>(y) == 1024_c*y);
     }
     {
-        constexpr auto H = [] (auto phi) { return phi*phi; };
+        constexpr auto H = [] (auto y) { return y*y; };
 
-        constexpr auto phi = make_field(H);
+        constexpr auto y = make_field(H);
 
-        static_assert(d_dt(phi) == H(phi));
+        static_assert(d_dt(y) == H(y));
 
-        static_assert(d_dt<0>(phi) == phi);
-        static_assert(d_dt<1>(phi) == d_dt(phi));
+        static_assert(d_dt<0>(y) == y);
+        static_assert(d_dt<1>(y) == d_dt(y));
 
         // only true because of the form of H
-        static_assert(d_dt<1>(phi) == factorial(1_c)*phi*phi);
-        static_assert(d_dt<2>(phi) == factorial(2_c)*phi*phi*phi);
-        static_assert(d_dt<5>(phi) == factorial(5_c)*phi*phi*phi*phi*phi*phi);
-        static_assert(d_dt<10>(phi) == factorial(10_c)*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi);
-        static_assert(d_dt<20>(phi) == factorial(20_c)*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi*phi);
+        static_assert(d_dt<1>(y) == factorial(1_c)*(y^2_c));
+        static_assert(d_dt<2>(y) == factorial(2_c)*(y^3_c));
+        static_assert(d_dt<5>(y) == factorial(5_c)*(y^6_c));
+        static_assert(d_dt<10>(y) == factorial(10_c)*(y^11_c));
+        static_assert(d_dt<20>(y) == factorial(20_c)*(y^21_c));
     }
     {
         constexpr auto H = [] (auto) { return x + t; };
 
-        constexpr auto phi = make_field(H);
+        constexpr auto y = make_field(H);
 
-        static_assert(d_dt(phi) == H(phi));
+        static_assert(d_dt(y) == H(y));
 
-        static_assert(d_dt<0>(phi) == phi);
-        static_assert(d_dt<1>(phi) == d_dt(phi));
+        static_assert(d_dt<0>(y) == y);
+        static_assert(d_dt<1>(y) == d_dt(y));
 
         // only true because of the form of H
-        static_assert(d_dt(phi) == x + t);
-        static_assert(d_dt<2>(phi) == 1);
-        static_assert(d_dt<3>(phi) == 0);
-        static_assert(d_dt<5>(phi) == 0);
-        static_assert(d_dt<10>(phi) == 0);
-        static_assert(d_dt<20>(phi) == 0);
+        static_assert(d_dt(y) == x + t);
+        static_assert(d_dt<2>(y) == 1);
+        static_assert(d_dt<3>(y) == 0);
+        static_assert(d_dt<5>(y) == 0);
+        static_assert(d_dt<10>(y) == 0);
+        static_assert(d_dt<20>(y) == 0);
     }
     {
-        constexpr auto H = [] (auto phi) { return (x + t*t)*phi; };
+        constexpr static auto g = x + t*t;
+        
+        constexpr auto H = [] (auto y) { return g*y; };
 
-        constexpr auto phi = make_field(H);
+        constexpr auto y = make_field(H);
 
-        static_assert(d_dt(phi) == H(phi));
+        static_assert(d_dt(y) == H(y));
 
-        static_assert(d_dt<0>(phi) == phi);
-        static_assert(d_dt<1>(phi) == d_dt(phi));
+        static_assert(d_dt<0>(y) == y);
+        static_assert(d_dt<1>(y) == d_dt(y));
 
-        static_assert(d_dt(phi) == (x + t*t)*phi);
+        static_assert(d_dt(y) == g*y);
 
-        static_assert(d_dt<2>(phi) == 2_c*t*phi + (x + t*t)*(x + t*t)*phi);
-
-        // NOTE:    During d_dt<3>(phi), the code currently does not do a full simplification
-
-        std::cout << "\n" << d_dt<2>(phi) << "\n" << std::endl;
-        std::cout << "\n" << d_dt<3>(phi) << "\n" << std::endl;
-
-
-
-        static_assert(d_dt<3>(phi) == ((2_c*phi) + (2_c*t*(x + t*t)*phi)) + ((4_c*(x + t*t)*t*phi) + ((x + t*t)*(x + t*t)*(x + t*t)*phi)));
-        static_assert(d_dt<3>(phi) == 2_c*phi + 6_c*t*(x + t*t)*phi + (x + t*t)*(x + t*t)*(x + t*t)*phi);
+        static_assert(d_dt<2>(y) == 2_c*t*y + (g^2_c)*y);
+        static_assert(d_dt<3>(y) == 2_c*y + 6_c*t*g*y + (g^3_c)*y);
+        static_assert(d_dt<4>(y) == (g^4_c)*y + 8_c*g*y + 12_c*(g^2_c)*t*y + 12_c*t*t*y);
     }
     {
-        constexpr auto H = [] (auto phi) { return d_dx<2>(phi); };
+        constexpr auto H = [] (auto y) { return d_dx<2>(y); };
 
-        constexpr auto phi = make_field(H);
+        constexpr auto y = make_field(H);
 
-        static_assert(d_dt(phi) == H(phi));
+        static_assert(d_dt(y) == H(y));
 
-        static_assert(d_dt<0>(phi) == phi);
-        static_assert(d_dt<1>(phi) == d_dt(phi));
+        static_assert(d_dt<0>(y) == y);
+        static_assert(d_dt<1>(y) == d_dt(y));
 
-        static_assert(d_dt<1>(phi) == d_dx<2>(phi));
-        static_assert(d_dt<2>(phi) == d_dx<4>(phi));
-        static_assert(d_dt<5>(phi) == d_dx<10>(phi));
-        static_assert(d_dt<10>(phi) == d_dx<20>(phi));
-        static_assert(d_dt<20>(phi) == d_dx<40>(phi));
-        static_assert(d_dt<100>(phi) == d_dx<200>(phi));     // compiles but takes a few seconds
+        static_assert(d_dt<1>(y) == d_dx<2>(y));
+        static_assert(d_dt<2>(y) == d_dx<4>(y));
+        static_assert(d_dt<5>(y) == d_dx<10>(y));
+        static_assert(d_dt<10>(y) == d_dx<20>(y));
+        static_assert(d_dt<20>(y) == d_dx<40>(y));
+        static_assert(d_dt<100>(y) == d_dx<200>(y));
     }
 
 }
