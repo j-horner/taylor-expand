@@ -346,9 +346,9 @@ constexpr auto operator+(F lhs, G rhs) {
         return rhs;
     } else if constexpr (std::is_same_v<G, Constant<0>>) {
         return lhs;
-    } else if constexpr (std::is_arithmetic_v<G>) {
+    } else if constexpr (std::is_arithmetic_v<G> && detail::is_constant<F>::value) {
         return static_cast<G>(lhs) + rhs;
-    } else if constexpr (std::is_arithmetic_v<F>) {
+    } else if constexpr (std::is_arithmetic_v<F> && detail::is_constant<G>::value) {
         return lhs + static_cast<F>(rhs);
     } else {
         return Addition<F, G>(lhs, rhs);

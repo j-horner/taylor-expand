@@ -60,7 +60,7 @@ constexpr auto taylor_series(Hamiltonian H, Phi_0 phi_0, T_0 t_0, std::integer_s
 
     auto phi = make_field(H);
 
-    return (... + ((d_dt<Ns>(phi)(phi_0, x, t_0)/Constant<util::factorial(Ns)>{})*(t^Constant<Ns>{})));
+    return (... + ((d_dt<Ns>(phi)(phi_0, x, t_0)/Constant<util::factorial(Ns)>{})*((t - t_0)^Constant<Ns>{})));
 }
 
 }   // detail

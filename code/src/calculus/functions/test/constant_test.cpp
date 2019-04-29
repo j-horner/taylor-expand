@@ -51,6 +51,12 @@ TEST_F(ConstantTest, Literal_Operator_Is_Correct) {
 
     static_assert(5_c == 5);
     static_assert(0.5 == 0.5_c);
+
+    static_assert(4_c + 11 == 15);
+    static_assert(2_c - 7 == -5);
+    static_assert(23_c*3 == 69);
+    static_assert(32_c/4 == 8);
+
 }
 
 }   // test

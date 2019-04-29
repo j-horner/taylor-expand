@@ -351,6 +351,9 @@ constexpr auto operator*(Constant<A, B> lhs, Power<Multiplication<Constant<C, D>
 // Main Multiplication
 template <typename F, typename G>
 constexpr auto operator*(F lhs, G rhs) {
+    static_assert(sizeof(lhs) > 0, "silence unused variable warning");
+    static_assert(sizeof(rhs) > 0, "silence unused variable warning");
+
     if constexpr (std::is_same_v<decltype(lhs), Constant<0>> || std::is_same_v<decltype(rhs), Constant<0>>) {
         using namespace literals;
         return 0_c;
@@ -360,9 +363,9 @@ constexpr auto operator*(F lhs, G rhs) {
         return lhs;
     } else if constexpr (detail::is_constant<G>::value) {
         return rhs*lhs;
-    } else if constexpr (std::is_arithmetic_v<G>) {
+    } else if constexpr (std::is_arithmetic_v<G> && detail::is_constant<F>::value) {
         return static_cast<G>(lhs)*rhs;
-    } else if constexpr (std::is_arithmetic_v<F>) {
+    } else if constexpr (std::is_arithmetic_v<F> && detail::is_constant<G>::value) {
         return lhs*static_cast<F>(rhs);
     } else {
         return Multiplication<F, G>(lhs, rhs);
