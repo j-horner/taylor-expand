@@ -314,11 +314,11 @@ constexpr auto operator+(F f, Division<F, G> y) {
 }
 
 // Division with unrelated factors
-template <typename F, typename G, typename H>
-constexpr auto operator+(Division<F, G> lhs, H rhs) { return (lhs.lhs + lhs.rhs*rhs)/lhs.rhs; }
+// template <typename F, typename G, typename H>
+// constexpr auto operator+(Division<F, G> lhs, H rhs) { return (lhs.lhs + lhs.rhs*rhs)/lhs.rhs; }
 
-template <typename F, typename G, typename H>
-constexpr auto operator+(H lhs, Division<F, G> rhs) { return (lhs*rhs.rhs + rhs.lhs)/rhs.rhs; }
+// template <typename F, typename G, typename H>
+// constexpr auto operator+(H lhs, Division<F, G> rhs) { return (lhs*rhs.rhs + rhs.lhs)/rhs.rhs; }
 
 template <typename A, typename B, typename C, typename D>
 constexpr auto operator+(Division<A, B> lhs, Division<C, D> rhs) { return (lhs.lhs*rhs.rhs + lhs.rhs*rhs.lhs)/(lhs.rhs*rhs.rhs); }

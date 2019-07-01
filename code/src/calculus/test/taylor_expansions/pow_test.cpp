@@ -11,7 +11,7 @@ class PowTest : public ::testing::Test {
 protected:
 };
 
-TEST_F(PowTest, Pow_Is_correct) {
+TEST_F(PowTest, Pow_Expand_Base_Is_correct) {
     using namespace operators;
     using namespace literals;
 
@@ -34,13 +34,18 @@ TEST_F(PowTest, Pow_Is_correct) {
             static_assert(y0 == 1);
             static_assert(y1 == 1_c + x*t_);
             static_assert(y2 == 1_c + x*t_ + (1_c/2_c)*(x*x + (-1_c*x))*(t_^2_c));
-            static_assert(y3 == 1_c + x*t_ + (1_c/2_c)*(x*x + (-1_c*x))*(t_^2_c) + (1_c/6_c)*((x^3_c) + (-2_c*(x^2_c)) + x + (-1_c)*(x*x + (-1_c*x)))*(t_^3_c));
+            static_assert(y3 == 1_c + x*t_ + (1_c/2_c)*(x*x + (-1_c*x))*(t_^2_c) + (1_c/6_c)*((x^3_c) + (-3_c*(x^2_c)) + (2_c*x))*(t_^3_c));
         }
-        /*constexpr auto y = taylor_expand<4>(H, y_0, t_0);
+        
+        constexpr auto y = taylor_expand<5>(H, y_0, t_0);
 
-        for (auto t_ : {-0.9, -0.75, -0.5, -0.2, -0.1, 0.0, 0.1, 0.2, 0.5, 0.75, 0.9}) {
-            EXPECT_NEAR(y(0, 0, t_), y_exact(t_), std::abs(util::pow(t_, 20)));
-        }*/
+        for (auto t_ : {-0.5, -0.1, 0.0, 0.1, 0.5, 0.9}) {
+            const auto tau = 1.0 + t_;
+            
+            for (auto x_ : {-1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 5.0}) {
+                EXPECT_NEAR(y(0, x_, tau), y_exact(tau, x_), std::abs(util::pow(t_, 5))) << "t = " << tau << "\tx = " << x_ << std::endl;
+            }
+        }
     }
 }
 
