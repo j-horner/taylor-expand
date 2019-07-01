@@ -11,7 +11,7 @@ class PowTest : public ::testing::Test {
 protected:
 };
 
-TEST_F(PowTest, Pow_Expand_Base_Is_correct) {
+TEST_F(PowTest, Pow_Is_correct) {
     using namespace operators;
     using namespace literals;
 
