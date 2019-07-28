@@ -87,7 +87,7 @@ constexpr auto convert_char_to_int<'.'>() { return std::integral_constant<char, 
 
 template <char C>
 constexpr auto convert_char_to_int() {
-    constexpr static auto I = static_cast<Int>(C - '0');   // convert a char digit into it's numerical equivalent
+    constexpr auto I = static_cast<Int>(C - '0');   // convert a char digit into it's numerical equivalent
 
     static_assert((9 >= I) && (0 <= I), "Characters specified in Constant<N> literal are not 0-9.");
     return Constant<I>{};

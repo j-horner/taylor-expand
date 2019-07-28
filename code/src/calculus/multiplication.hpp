@@ -147,10 +147,10 @@ constexpr auto operator*(Multiplication<Fs...> f, G g) {
     if constexpr (detail::is_constant<G>::value) {
         return g*f;
     } else {
-        constexpr static auto match_found = (std::is_same_v<Fs, G> || ...);
+        constexpr auto match_found = (std::is_same_v<Fs, G> || ...);
 
         if constexpr (false == match_found) {
-            constexpr static auto power_found = (detail::is_power<Fs, G>::value || ...);
+            constexpr auto power_found = (detail::is_power<Fs, G>::value || ...);
 
             if constexpr (false == power_found) {
                 return Multiplication<Fs..., G>(f, g);
@@ -173,10 +173,10 @@ constexpr auto operator*(G g, Multiplication<Fs...> f) {
     } else if constexpr (std::is_same_v<G, Constant<1>>) {
         return f;
     } else {
-        constexpr static auto match_found = (util::is_same<Fs, G>::value || ...);
+        constexpr auto match_found = (util::is_same<Fs, G>::value || ...);
 
         if constexpr (false == match_found) {
-            constexpr static auto power_found = (detail::is_power<Fs, G>::value || ...);
+            constexpr auto power_found = (detail::is_power<Fs, G>::value || ...);
 
             if constexpr (false == power_found) {
                 return Multiplication<G, Fs...>(g, f);

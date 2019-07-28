@@ -32,15 +32,16 @@ template <Int N = 1> constexpr auto d_dx(D) { return dD_dx<N>{}; }
 
 class AdditionTest : public ::testing::Test {
  protected:
-    constexpr static auto a = A{};
-    constexpr static auto b = B{};
-    constexpr static auto c = C{};
-    constexpr static auto d = D{};
 };
 
 TEST_F(AdditionTest, Addition_Is_Correct) {
     using namespace operators;
     using namespace literals;
+
+	constexpr auto a = A{};
+	constexpr auto b = B{};
+	constexpr auto c = C{};
+	constexpr auto d = D{};
 
     {
         constexpr auto y = a + b + c + d;   // x^2 + 6x + 3

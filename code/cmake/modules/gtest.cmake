@@ -31,7 +31,7 @@ function(add_gtest_test target)
                            $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
                                 -Wall -Wextra -Werror>
                            $<$<CXX_COMPILER_ID:MSVC>:
-                                /W4 /WX /EHsc /std:c++17 /bigobj>)
+                                /W3 /WX /EHsc /std:c++17 /bigobj>)
 
     target_link_libraries(${target} gtest_main)
 

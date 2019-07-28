@@ -5,3 +5,4 @@ bin
 *.vcxproj*
 *.vs
 CMakeSettings.json
+out

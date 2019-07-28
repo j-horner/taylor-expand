@@ -169,10 +169,10 @@ constexpr auto operator+(Addition<Fs...> f, G g) {
     if constexpr (std::is_same_v<G, Constant<0>>) {
         return f;
     } else {
-        constexpr static auto match_found = (util::is_same<Fs, G>::value || ...);
+        constexpr auto match_found = (util::is_same<Fs, G>::value || ...);
 
         if constexpr (false == match_found) {
-            constexpr static auto multiple_found = (detail::is_multiple<Fs, G>::value || ...);
+            constexpr auto multiple_found = (detail::is_multiple<Fs, G>::value || ...);
 
             if constexpr (false == multiple_found) {
                 return Addition<Fs..., G>(f, g);
