@@ -1,5 +1,7 @@
 #include "../../taylor_series.hpp"
 
+#include "../../comparison.hpp"
+
 #include <gtest/gtest.h>
 
 #include <cmath>
@@ -13,7 +15,6 @@ class TanTest : public ::testing::Test {
 };
 
 TEST_F(TanTest, Tan_Is_Correct) {
-    using namespace operators;
     using namespace literals;
 
     constexpr auto H = [] (auto y) { return 1_c + y*y; };
@@ -37,7 +38,10 @@ TEST_F(TanTest, Tan_Is_Correct) {
         static_assert(y5 == t + (t^3_c)/3_c + (2_c/15_c)*(t^5_c));
         static_assert(y7 == t + (t^3_c)/3_c + (2_c/15_c)*(t^5_c) + (17_c/315_c)*(t^7_c));
 
-        constexpr auto y = taylor_expand<9>(H, y_0);
+		// MSVC debug:		N = 15 --> expression did not evaluate to a constant - note: failure was caused by evaluation exceeding step limit of 1048576 (/constexpr:steps<NUMBER>)
+		// MSVC release:	N = 16 --> expression did not evaluate to a constant - note: failure was caused by evaluation exceeding step limit of 1048576 (/constexpr:steps<NUMBER>)
+		// clang-cl:		N = 15 --> error : constexpr variable 'y' must be initialized by a constant expression - note: constexpr evaluation hit maximum step limit; possible infinite loop?
+        constexpr auto y = taylor_expand<14>(H, y_0);
 
         for (auto t_ : {-0.9, -0.75, -0.5, -0.2, -0.1, 0.0, 0.1, 0.2, 0.5, 0.75, 0.9}) {
             EXPECT_NEAR(y(0, 0, t_), y_exact(t_), std::abs(util::pow(t_, 5)));

@@ -1,5 +1,7 @@
 #include "../../taylor_series.hpp"
 
+#include "../../comparison.hpp"
+
 #include <gtest/gtest.h>
 
 #include <cmath>
@@ -12,7 +14,6 @@ protected:
 };
 
 TEST_F(LogTest, Logarithm_Is_Correct) {
-    using namespace operators;
     using namespace literals;
 
     constexpr auto H = [] (auto) { return 1_c/t; };
@@ -37,7 +38,8 @@ TEST_F(LogTest, Logarithm_Is_Correct) {
             static_assert(y3 == t_ + (-1_c*(t_^2_c))/2_c + (t_^3_c)/3_c);
         }
 
-        constexpr auto y = taylor_expand<20>(H, y_0, t_0);
+        // N = 21 --> integer overflow!
+		constexpr auto y = taylor_expand<20>(H, y_0, t_0);
 
         for (auto t_ :{-0.9, -0.75, -0.5, -0.2, -0.1, 0.0, 0.1, 0.2, 0.5, 0.75, 0.9}) {
             const auto tau = 1.0 + t_;

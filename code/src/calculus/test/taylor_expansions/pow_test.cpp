@@ -1,5 +1,7 @@
 #include "../../taylor_series.hpp"
 
+#include "../../comparison.hpp"
+
 #include <gtest/gtest.h>
 
 #include <cmath>
@@ -12,7 +14,6 @@ protected:
 };
 
 TEST_F(PowTest, Pow_Is_correct) {
-    using namespace operators;
     using namespace literals;
 
     constexpr auto H = [] (auto y) { return x*y/t; };
@@ -37,7 +38,9 @@ TEST_F(PowTest, Pow_Is_correct) {
             static_assert(y3 == 1_c + x*t_ + (1_c/2_c)*(x*x + (-1_c*x))*(t_^2_c) + (1_c/6_c)*((x^3_c) + (-3_c*(x^2_c)) + (2_c*x))*(t_^3_c));
         }
         
-        constexpr auto y = taylor_expand<5>(H, y_0, t_0);
+		// MSVC:		N = 8 --> fatal error C1202: recursive type or function dependency context too complex
+		// clang-cl:	N = 7 --> LLVM error : out of memory
+        constexpr auto y = taylor_expand<6>(H, y_0, t_0);
 
         for (auto t_ : {-0.5, -0.1, 0.0, 0.1, 0.5, 0.9}) {
             const auto tau = 1.0 + t_;

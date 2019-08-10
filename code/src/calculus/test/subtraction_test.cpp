@@ -2,6 +2,8 @@
 
 #include "../comparison.hpp"
 
+#include "../functions/constant.hpp"
+
 #include <gtest/gtest.h>
 
 namespace fields {
@@ -20,16 +22,6 @@ struct D {
     template <typename T> constexpr auto operator()(T x) const { return x*x; }
 };
 
-template <Int N = 1> struct dA_dx {};
-template <Int N = 1> struct dB_dx {};
-template <Int N = 1> struct dC_dx {};
-template <Int N = 1> struct dD_dx {};
-
-template <Int N = 1> constexpr auto d_dx(A) { return dA_dx<N>{}; }
-template <Int N = 1> constexpr auto d_dx(B) { return dB_dx<N>{}; }
-template <Int N = 1> constexpr auto d_dx(C) { return dC_dx<N>{}; }
-template <Int N = 1> constexpr auto d_dx(D) { return dD_dx<N>{}; }
-
 class SubtractionTest : public ::testing::Test {
 protected:
     constexpr static auto a = A{};
@@ -39,7 +31,6 @@ protected:
 };
 
 TEST_F(SubtractionTest, Subtraction_Is_Correct) {
-    using namespace operators;
     using namespace literals;
 
     static_assert(a - a == 0);

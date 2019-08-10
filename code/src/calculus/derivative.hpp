@@ -5,59 +5,53 @@
 #include "functions/power.hpp"
 
 #include "addition.hpp"
-#include "subtraction.hpp"
-#include "multiplication.hpp"
-#include "division.hpp"
-#include "taylor_series.hpp"
+// #include "subtraction.hpp"
+// #include "division.hpp"
 
-// C headers
-#include <cstdint>
+#include "field.hpp"
 
 namespace fields {
 
-using Int = std::intmax_t;
-
-
 namespace detail {
 
-class X;
-class T;
-
-template <typename H, Int N>
+template <typename Hamiltonian, Int N>
 class Field;
 
-} // detail
+template <typename Hamiltonian>
+constexpr auto make_field(Hamiltonian H);
 
-template <typename F, Int N>
-class Power;
+}
 
-namespace operators {
+
+template <Int N = 1, typename Hamiltonian, Int M>
+constexpr auto d_dx(fields::detail::Field<Hamiltonian, M> phi) -> fields::detail::Field<Hamiltonian, M + N>;
+
+template <Int N = 1, typename Hamiltonian, Int M>
+constexpr auto d_dt(fields::detail::Field<Hamiltonian, M> phi);
 
 // all constants have 0 derivative
 template <Int D = 1, Int A, Int B>
 constexpr auto d_dx(Constant<A, B>) {
     static_assert(D >= 0);
-    using namespace literals;
     if constexpr (D == 0) {
         return Constant<A, B>{};
     } else {
-        return 0_c;
+		return Constant<0>{};
     }
 }
 
 template <Int D = 1, Int A, Int B>
 constexpr auto d_dt(Constant<A, B>) {
     static_assert(D >= 0);
-    using namespace literals;
     if constexpr (D == 0) {
         return Constant<A, B>{};
     } else {
-        return 0_c;
+        return Constant<0>{};
     }
 }
 
 template <Int D = 1>
-constexpr auto d_dx(fields::detail::X) {
+constexpr auto d_dx(X) {
     static_assert(D >= 0);
 
     using namespace literals;
@@ -71,31 +65,29 @@ constexpr auto d_dx(fields::detail::X) {
 }
 
 template <Int D = 1>
-constexpr auto d_dx(fields::detail::T) {
+constexpr auto d_dx(T) {
     static_assert(D >= 0);
 
-    using namespace literals;
     if constexpr (D == 0) {
         return t;
     } else {
-        return 0_c;
+		return Constant<0>{};
     }
 }
 
 template <Int D = 1>
-constexpr auto d_dt(fields::detail::X) {
+constexpr auto d_dt(X) {
     static_assert(D >= 0);
 
-    using namespace literals;
     if constexpr (D == 0) {
         return x;
     } else {
-        return 0_c;
+		return Constant<0>{};
     }
 }
 
 template <Int D = 1>
-constexpr auto d_dt(fields::detail::T) {
+constexpr auto d_dt(T) {
     static_assert(D >= 0);
 
     using namespace literals;
@@ -140,13 +132,38 @@ constexpr auto d_dt(Power<F, N> y) {
     }
 }
 
+template <Int N, typename Hamiltonian, Int M>
+constexpr auto d_dx(fields::detail::Field<Hamiltonian, M> phi) -> fields::detail::Field<Hamiltonian, M + N> {
+	static_assert(N >= 0);
+	return fields::detail::Field<Hamiltonian, M + N>(phi);
+}
+
+template <Int N, typename Hamiltonian, Int M>
+constexpr auto d_dt(fields::detail::Field<Hamiltonian, M> phi) {
+	static_assert(N >= 0);
+
+	if constexpr (N == 0) {
+		return phi;
+	}
+	else if constexpr (N == 1) {
+		// return phi.time_derivative();
+		auto H = phi.H();
+
+		return d_dx<M>(H(fields::detail::make_field(H)));
+	}
+	else {
+		return d_dt(d_dt<N - 1>(phi));
+	}
+}
+
 
 // Derivative operators
 template <Int D = 1, typename... Fs>
-constexpr auto d_dx(Addition<Fs...> y) { return y.derivative([] (auto f) { return d_dx<D>(f); }); }
+constexpr auto d_dx(Addition<Fs...> y) { return y.derivative([](auto f) { return d_dx<D>(f); }); }
 
 template <Int D = 1, typename... Fs>
-constexpr auto d_dt(Addition<Fs...> y) { return y.derivative([] (auto f) { return d_dt<D>(f); }); }
+constexpr auto d_dt(Addition<Fs...> y) { return y.derivative([](auto f) { return d_dt<D>(f); }); }
+
 
 template <Int D = 1, typename F, typename G>
 constexpr auto d_dx(Subtraction<F, G> y) { return d_dx<D>(y.lhs) - d_dx<D>(y.rhs); }
@@ -181,7 +198,6 @@ constexpr auto d_dx(Division<F, G> y) {
         return y;
     } else {
         return d_dx<D - 1>(d_dx(y.lhs*Power<G, -1>{y.rhs}));
-        // return d_dx<D - 1>((d_dx(y.lhs)*y.rhs - y.lhs*d_dx(y.rhs))/(y.rhs*y.rhs));
     }
 }
 
@@ -192,47 +208,19 @@ constexpr auto d_dt(Division<F, G> y) {
         return y;
     } else {
         return d_dt<D - 1>(d_dt(y.lhs*Power<G, -1>{y.rhs}));
-        // return d_dt<D - 1>((d_dt(y.lhs)*y.rhs - y.lhs*d_dt(y.rhs))/(y.rhs*y.rhs));
     }
 }
 
 template <Int D = 1, typename F>
 constexpr auto d_dx(F f) {
-    if constexpr (D == 0) {
-        return f;
-    } else {
-        static_assert(false, "The derivative of this type is not known.");
-    }
+	static_assert(D == 0, "The derivative of unknown functions is only known for D == 0");
+	return f;
 }
 
 template <Int D = 1, typename F>
 constexpr auto d_dt(F f) {
-    if constexpr (D == 0) {
-        return f;
-    } else {
-        static_assert(false, "The derivative of this type is not known.");
-    }
+	static_assert(D == 0, "The derivative of unknown functions is only known for D == 0");
+	return f;
 }
 
-template <Int N = 1, typename Hamiltonian, Int M>
-constexpr auto d_dx(fields::detail::Field<Hamiltonian, M> phi) {
-    static_assert(N >= 0);
-    return fields::detail::Field<Hamiltonian, M + N>(phi);
-}
-
-template <Int N = 1, typename Hamiltonian, Int M>
-constexpr auto d_dt(fields::detail::Field<Hamiltonian, M> phi) {
-    static_assert(N >= 0);
-
-    if constexpr (N == 0) {
-        return phi;
-    } else if constexpr (N == 1) {
-        return phi.time_derivative();
-    } else {
-        return d_dt(d_dt<N - 1>(phi));
-    }
-}
-
-
-} // operators
 } // fields

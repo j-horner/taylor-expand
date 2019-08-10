@@ -1,5 +1,7 @@
 #include "../../taylor_series.hpp"
 
+#include "../../comparison.hpp"
+
 #include <gtest/gtest.h>
 
 namespace fields {
@@ -10,7 +12,6 @@ protected:
 };
 
 TEST_F(SimpleExamplesTest, Series_Expansion_Is_Correct) {
-    using namespace operators;
     using namespace literals;
 
     {

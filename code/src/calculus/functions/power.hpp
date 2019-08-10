@@ -24,8 +24,8 @@ class Multiplication;
 
 template <typename F, Int N>
 class Power {
-    static_assert(std::is_same_v<F, Constant<0>> == false, "0 should not have powers taken! 0^N: -> 0 for N > 0, -> 1 for N = 0 and is undefined for N < 0.");
-    static_assert(std::is_same_v<F, Constant<1>> == false, "1 should not have powers taken! 1^N: -> 1 for and N.");
+    static_assert(std::is_same_v<F, Constant<0, 1>> == false, "0 should not have powers taken! 0^N: -> 0 for N > 0, -> 1 for N = 0 and is undefined for N < 0.");
+    static_assert(std::is_same_v<F, Constant<1, 1>> == false, "1 should not have powers taken! 1^N: -> 1 for and N.");
 
     static_assert(N != 0, "F^0 -> 1");
     static_assert(N != 1, "F^1 -> F");
@@ -41,11 +41,13 @@ class Power {
 
     template <typename... Args>
     constexpr auto operator()(Args... args) const {
-        if constexpr ((std::is_arithmetic_v<Args> && ...)) {
+		using namespace fields::literals;
+		
+		if constexpr ((std::is_arithmetic_v<Args> && ...)) {
             return util::pow(f_(args...), N);
-        } else if constexpr (std::is_same_v<decltype(f_(args...)), Constant<0>>) {
+        } else if constexpr (std::is_same_v<decltype(f_(args...)), Constant<0, 1>>) {
             return 0_c;
-        } else if constexpr (std::is_same_v<decltype(f_(args...)), Constant<1>>) {
+        } else if constexpr (std::is_same_v<decltype(f_(args...)), Constant<1, 1>>) {
             return 1_c;
         } else {
             return Power<decltype(f_(args...)), N>{f_(args...)};
@@ -66,11 +68,9 @@ auto operator<<(std::ostream& os, Power<F, N> y) -> std::ostream& {
     return os;
 }
 
-namespace operators {
-
 template <typename F>
 constexpr auto operator^(F, Constant<0, 1>) {
-    using namespace literals;
+    using namespace fields::literals;
     return 1_c;
 }
 
@@ -88,28 +88,6 @@ constexpr auto operator^(Power<F, N> f, Constant<M, 1>) {
         return Power<F, N*M>{f};
     }
 }
-
-// power operator with integers, if rational powers are needed do it later
-template <Int A, Int N>
-constexpr auto operator^(Constant<A, 1>, Constant<N, 1>) {
-    if constexpr (0 == N) {
-        // anything to power 0 is 1
-        return Constant<1, 1>{};
-    } else if constexpr (-1 == N) {
-        return Constant<1, 1>{} / Constant<A, 1>{};
-    } else if constexpr (0 > N) {
-        // negative powers mean divide
-        return Constant<1, 1>{} / (Constant<A, 1>{}^Constant<-N, 1>{});
-    } else {
-        // standard recursive power definition, could probably be better
-        constexpr auto A_N = util::pow(A, N);
-
-        return Constant<A_N, 1>{};
-    }
-}
-
-template <Int A, Int B, Int N>
-constexpr auto operator^(Constant<A, B>, Constant<N, 1>) { return (Constant<A, 1>{}^Constant<N, 1>{}) / (Constant<B, 1>{}^Constant<N, 1>{}); }
 
 namespace detail {
 
@@ -136,5 +114,4 @@ struct is_power<Power<F, N>, Power<G, M>> : std::bool_constant<util::is_same<F, 
 
 }   //detail
 
-}   // operators
 }   // fields

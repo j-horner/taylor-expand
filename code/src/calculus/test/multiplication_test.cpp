@@ -20,22 +20,11 @@ struct D {
     template <typename T> constexpr auto operator()(T x) const { return x*x; }
 };
 
-struct dA_dx {};
-struct dB_dx {};
-struct dC_dx {};
-struct dD_dx {};
-
-constexpr auto d_dx(A) -> dA_dx { return {}; }
-constexpr auto d_dx(B) -> dB_dx { return {}; }
-constexpr auto d_dx(C) -> dC_dx { return {}; }
-constexpr auto d_dx(D) -> dD_dx { return {}; }
-
 class MultiplicationTest : public ::testing::Test {
  protected:
 };
 
 TEST_F(MultiplicationTest, Mutliplication_Is_Correct) {
-    using namespace operators;
     using namespace literals;
 
     constexpr auto a = A{};

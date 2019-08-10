@@ -1,5 +1,7 @@
 #include "../power.hpp"
 
+#include "../../comparison.hpp"
+
 #include <gtest/gtest.h>
 
 namespace fields {
@@ -9,7 +11,6 @@ class PowerTest : public ::testing::Test {
 };
 
 TEST_F(PowerTest, Power_Operator_Is_Correct) {
-    using namespace operators;
     using namespace literals;
 
     struct F {};

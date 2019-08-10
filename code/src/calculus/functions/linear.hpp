@@ -1,14 +1,7 @@
 #pragma once
 
-#include "constant.hpp"
-
-#include "../derivative.hpp"
-
-#include <ostream>
-
 namespace fields {
 
-namespace detail {
 class X {
 public:
     template <typename Phi, typename X_, typename T_>
@@ -21,21 +14,19 @@ class T {
     constexpr auto operator()(Phi, X_, T_ t) const { return t; }
 };
 
-auto operator<<(std::ostream& os, X) -> std::ostream& {
+template <typename Stream>
+auto& operator<<(Stream& os, X) {
     os << "x";
     return os;
 }
 
-auto operator<<(std::ostream& os, T) -> std::ostream& {
+template <typename Stream>
+auto& operator<<(Stream& os, T) {
     os << "t";
     return os;
 }
 
-}   // detail
+constexpr static auto x = X{};
+constexpr static auto t = T{};
 
-constexpr static auto x = detail::X{};
-constexpr static auto t = detail::T{};
-
-
-
-}
+}	// fields

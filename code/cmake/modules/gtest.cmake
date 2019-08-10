@@ -20,20 +20,21 @@ add_subdirectory("${CMAKE_BINARY_DIR}/googletest-src"
 # dependencies automatically when using CMake 2.8.11 or
 # later. Otherwise we have to add them here ourselves.
 if(CMAKE_VERSION VERSION_LESS 2.8.11)
-    include_directories("${gtest_SOURCE_DIR}/include"
-                        "${gmock_SOURCE_DIR}/include")
+    include_directories(SYSTEM "${gtest_SOURCE_DIR}/include"
+						       "${gmock_SOURCE_DIR}/include")
 endif()
 
 function(add_gtest_test target)
     add_executable(${target} ${ARGN})
 
-    target_compile_options(${target} PRIVATE
-                           $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
-                                -Wall -Wextra -Werror>
+    target_link_libraries(${target} PUBLIC gtest_main)
+    
+	target_compile_options(${target} PRIVATE
+                           $<$<CXX_COMPILER_ID:Clang>:
+                                -Xclang -std=c++17 -ferror-limit=50>
                            $<$<CXX_COMPILER_ID:MSVC>:
-                                /W3 /WX /EHsc /std:c++17 /bigobj>)
+                                /W3 /WX /EHsc /std:c++latest /bigobj>)
 
-    target_link_libraries(${target} gtest_main)
 
 
     add_test(${target} ${target})

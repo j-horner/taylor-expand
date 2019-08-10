@@ -1,5 +1,7 @@
 #include "../../taylor_series.hpp"
 
+#include "../../comparison.hpp"
+
 #include <gtest/gtest.h>
 
 namespace fields {
@@ -10,7 +12,6 @@ protected:
 };
 
 TEST_F(LerpTest, Lerp_Is_Correct) {
-    using namespace operators;
     using namespace literals;
 
     constexpr auto a = 4.3_c;
@@ -27,7 +28,9 @@ TEST_F(LerpTest, Lerp_Is_Correct) {
         constexpr auto y1 = taylor_expand<1>(H, y_0);
         constexpr auto y2 = taylor_expand<2>(H, y_0);
         constexpr auto y3 = taylor_expand<3>(H, y_0);
-        constexpr auto y = taylor_expand<20>(H, y_0);
+        
+		// N = 21 --> integer overflow!
+		constexpr auto y = taylor_expand<20>(H, y_0);
 
         static_assert(y0 == a);
         static_assert(y1 == a + (b - a)*t);

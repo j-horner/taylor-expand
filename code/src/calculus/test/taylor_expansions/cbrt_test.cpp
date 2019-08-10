@@ -1,5 +1,7 @@
 #include "../../taylor_series.hpp"
 
+#include "../../comparison.hpp"
+
 #include <gtest/gtest.h>
 
 #include <cmath>
@@ -12,7 +14,6 @@ protected:
 };
 
 TEST_F(CbrtTest, Cbrt_Is_correct) {
-    using namespace operators;
     using namespace literals;
 
     constexpr auto H = [] (auto y) { return (1_c/3_c)*(y^(-2_c)); };
@@ -37,7 +38,8 @@ TEST_F(CbrtTest, Cbrt_Is_correct) {
             static_assert(y3 == 1_c + (1_c/3_c)*t_ + (-1_c/9_c)*(t_^2_c) + (5_c/81_c)*(t_^3_c));
         }
 
-        constexpr auto y = taylor_expand<16>(H, y_0, t_0);
+        // N = 17 --> integer overflow!
+		constexpr auto y = taylor_expand<16>(H, y_0, t_0);
 
         for (auto t_ : {-0.9, -0.5, -0.1, 0.0, 0.1, 0.5, 0.9}) {
             const auto tau = 1.0 + t_;

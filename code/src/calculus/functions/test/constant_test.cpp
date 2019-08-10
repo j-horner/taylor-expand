@@ -1,5 +1,7 @@
 #include "../constant.hpp"
 
+#include "../../comparison.hpp"
+
 #include <gtest/gtest.h>
 
 #include <limits>
@@ -15,7 +17,6 @@ class ConstantTest : public ::testing::Test {
 
 TEST_F(ConstantTest, Literal_Operator_Is_Correct) {
     using namespace literals;
-    using namespace operators;
 
     constexpr auto a = 123_c;
     constexpr auto b = 99999_c;

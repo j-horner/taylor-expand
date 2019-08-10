@@ -1,5 +1,7 @@
 #include "../../taylor_series.hpp"
 
+#include "../../comparison.hpp"
+
 #include <gtest/gtest.h>
 
 namespace fields {
@@ -10,7 +12,6 @@ protected:
 };
 
 TEST_F(GeometricSeriesTest, Geometric_Series_Is_Correct) {
-    using namespace operators;
     using namespace literals;
 
     constexpr auto H = [] (auto y) { return y*y; };
@@ -30,7 +31,8 @@ TEST_F(GeometricSeriesTest, Geometric_Series_Is_Correct) {
         static_assert(y2 == 1_c + t + t*t);
         static_assert(y3 == 1_c + t + t*t + t*t*t);
 
-        constexpr auto y = taylor_expand<20>(H, y_0);
+        // N = 21 --> integer overflow!
+		constexpr auto y = taylor_expand<20>(H, y_0);
 
         for (auto t_ :{-0.9, -0.75, -0.5, -0.2, -0.1, 0.0, 0.1, 0.2, 0.5}) {
             EXPECT_NEAR(y(0, 0, t_), y_exact(t_), std::abs(util::pow(t_, 20)));

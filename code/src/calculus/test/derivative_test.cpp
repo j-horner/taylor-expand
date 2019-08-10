@@ -3,11 +3,17 @@
 #include "../comparison.hpp"
 #include "../functions/linear.hpp"
 
+#include "../addition.hpp"
+#include "../subtraction.hpp"
+#include "../multiplication.hpp"
+#include "../division.hpp"
+
 #include <gtest/gtest.h>
 
 namespace fields {
 
-namespace operators {
+// TODO: clang fails the first test if placed in fields::test namespace. WHY?
+// namespace test {
 
 struct A {
     template <typename T> constexpr auto operator()(T) const { return 3; }
@@ -22,38 +28,32 @@ struct D {
     template <typename T> constexpr auto operator()(T x) const { return x*x; }
 };
 
-template <Int N = 1> struct dA_dx {};
-template <Int N = 1> struct dB_dx {};
-template <Int N = 1> struct dC_dx {};
-template <Int N = 1> struct dD_dx {};
+template <int N = 1> struct dA_dx {};
+template <int N = 1> struct dB_dx {};
+template <int N = 1> struct dC_dx {};
+template <int N = 1> struct dD_dx {};
 
-template <Int N = 1> constexpr auto d_dx(A) { return dA_dx<N>{}; }
-template <Int N = 1> constexpr auto d_dx(B) { return dB_dx<N>{}; }
-template <Int N = 1> constexpr auto d_dx(C) { return dC_dx<N>{}; }
-template <Int N = 1> constexpr auto d_dx(D) { return dD_dx<N>{}; }
-
-}
-
-namespace test {
-
-using namespace operators;
+template <int N = 1> constexpr auto d_dx(A) { return dA_dx<N>{}; }
+template <int N = 1> constexpr auto d_dx(B) { return dB_dx<N>{}; }
+template <int N = 1> constexpr auto d_dx(C) { return dC_dx<N>{}; }
+template <int N = 1> constexpr auto d_dx(D) { return dD_dx<N>{}; }
 
 class DerivativeTest : public ::testing::Test {
 protected:
-    constexpr static auto a = A{};
+    	
+	constexpr static auto a = A{};
     constexpr static auto b = B{};
     constexpr static auto c = C{};
     constexpr static auto d = D{};
 };
 
-
 TEST_F(DerivativeTest, Derivative_Of_Sums_Is_Correct) {
-    constexpr auto da_dx = dA_dx{};
-    constexpr auto db_dx = dB_dx{};
-    constexpr auto dc_dx = dC_dx{};
-    constexpr auto dd_dx = dD_dx{};
+	constexpr auto da_dx = d_dx(a);
+    constexpr auto db_dx = d_dx(b);
+    constexpr auto dc_dx = d_dx(c);
+    constexpr auto dd_dx = d_dx(d);
 
-    static_assert(d_dx(a + b) == da_dx + db_dx);
+	static_assert(d_dx(a + b) == da_dx + db_dx);
     static_assert(d_dx(a + b + c) == da_dx + db_dx + dc_dx);
     static_assert(d_dx(a + b + c + d) == da_dx + db_dx + dc_dx + dd_dx);
 
@@ -61,12 +61,12 @@ TEST_F(DerivativeTest, Derivative_Of_Sums_Is_Correct) {
 }
 
 TEST_F(DerivativeTest, Derivative_Of_Products_Is_Correct) {
-    using namespace literals;
+	using namespace literals;
 
-    constexpr auto da_dx = dA_dx{};
-    constexpr auto db_dx = dB_dx{};
-    constexpr auto dc_dx = dC_dx{};
-    constexpr auto dd_dx = dD_dx{};
+	constexpr auto da_dx = d_dx(a);
+	constexpr auto db_dx = d_dx(b);
+	constexpr auto dc_dx = d_dx(c);
+	constexpr auto dd_dx = d_dx(d);
 
     static_assert(d_dx(a*b) == da_dx*b + a*db_dx);
     static_assert(d_dx(a*b*c) == da_dx*b*c + a*db_dx*c + a*b*dc_dx);
@@ -76,7 +76,7 @@ TEST_F(DerivativeTest, Derivative_Of_Products_Is_Correct) {
 }
 
 TEST_F(DerivativeTest, Derivative_Of_Linear_Is_Correct) {
-    using namespace literals;
+	using namespace literals;
 
     {
         static_assert(d_dt(t) == 1);
@@ -139,9 +139,8 @@ TEST_F(DerivativeTest, Derivative_Of_Linear_Is_Correct) {
 }
 
 TEST_F(DerivativeTest, Time_Derivative_Of_Fields_Is_Correct) {
-    using namespace operators;
-    using namespace literals;
     using namespace fields::detail;
+    using namespace literals;
 
     {
         constexpr auto H = [] (auto y) { return y; };
@@ -223,9 +222,9 @@ TEST_F(DerivativeTest, Time_Derivative_Of_Fields_Is_Correct) {
         static_assert(d_dt<20>(y) == 0);
     }
     {
-        constexpr static auto g = x + t*t;
+        constexpr auto g = x + t*t;
         
-        constexpr auto H = [] (auto y) { return g*y; };
+        constexpr auto H = [g] (auto y) { return g*y; };
 
         constexpr auto y = make_field(H);
 
@@ -241,7 +240,8 @@ TEST_F(DerivativeTest, Time_Derivative_Of_Fields_Is_Correct) {
         static_assert(d_dt<4>(y) == (g^4_c)*y + 8_c*g*y + 12_c*(g^2_c)*t*y + 12_c*t*t*y);
     }
     {
-        constexpr auto H = [] (auto y) { return d_dx<2>(y); };
+		using fields::d_dx;
+		constexpr auto H = [] (auto y) { return d_dx<2>(y); };
 
         constexpr auto y = make_field(H);
 
@@ -260,5 +260,5 @@ TEST_F(DerivativeTest, Time_Derivative_Of_Fields_Is_Correct) {
 
 }
 
-}   // test
+// }   // test
 }   // fields

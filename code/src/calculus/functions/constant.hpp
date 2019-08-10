@@ -1,14 +1,8 @@
 #pragma once
 
-#include "power.hpp"
-
-#include "../addition.hpp"
-#include "../comparison.hpp"
-
 #include "../../util/util.hpp"
 
 // C++ headers
-#include <ostream>
 #include <ratio>
 #include <utility>
 
@@ -59,14 +53,14 @@ constexpr auto factorial(Constant<N>) {
     static_assert(N >= 0, "Can only take factorial of positive integers.");
 
     if constexpr (N == 0) {
-        return 1_c;
+		return Constant<1>{};
     } else {
         return Constant<util::factorial(N)>{};
     }
 }
 
-template <Int A, Int B>
-auto operator<<(std::ostream& os, Constant<A, B>) -> std::ostream& {
+template <typename Stream, Int A, Int B>
+auto& operator<<(Stream& os, Constant<A, B>) {
     if constexpr (B == 1) {
         os << A;
     } else {
@@ -75,6 +69,137 @@ auto operator<<(std::ostream& os, Constant<A, B>) -> std::ostream& {
 
     return os;
 }
+
+template <Int A, Int B, Int C, Int D>
+constexpr auto operator==(Constant<A, B>, Constant<C, D>) {
+	return std::ratio_equal_v<std::ratio<A, B>, std::ratio<C, D>>;
+}
+
+template <typename T, Int A, Int B>
+constexpr auto operator==(T lhs, Constant<A, B> rhs) -> std::enable_if_t<std::is_arithmetic_v<T>, T> {
+	return lhs == static_cast<T>(rhs);
+}
+
+template <typename T, Int A, Int B>
+constexpr auto operator==(Constant<A, B> lhs, T rhs) -> std::enable_if_t<std::is_arithmetic_v<T>, T> {
+	return static_cast<T>(lhs) == rhs;
+}
+
+
+template <Int A, Int B>
+constexpr auto operator+(Constant<A, B>, Constant<A, B>) {
+	using R = std::ratio_add<std::ratio<A, B>, std::ratio<A, B>>;
+	return Constant<R::num, R::den>{};
+}
+
+template <Int A, Int B, Int C, Int D>
+constexpr auto operator+(Constant<A, B>, Constant<C, D>) {
+	using R = std::ratio_add<std::ratio<A, B>, std::ratio<C, D>>;
+	return Constant<R::num, R::den>{};
+}
+
+template <typename T, Int A, Int B>
+constexpr auto operator+(T lhs, Constant<A, B> rhs) -> std::enable_if_t<std::is_arithmetic_v<T>, T> {
+	return lhs + static_cast<T>(rhs);
+}
+
+template <typename T, Int A, Int B>
+constexpr auto operator+(Constant<A, B> lhs, T rhs) -> std::enable_if_t<std::is_arithmetic_v<T>, T> {
+	return static_cast<T>(lhs) + rhs;
+}
+
+template <Int A, Int B>
+constexpr auto operator-(Constant<A, B>) {
+	return Constant<-A, B>{};
+}
+
+template <Int A, Int B, Int C, Int D>
+constexpr auto operator-(Constant<A, B>, Constant<C, D>) {
+	using R = std::ratio_subtract<std::ratio<A, B>, std::ratio<C, D>>;
+	return Constant<R::num, R::den>{};
+}
+
+template <Int A, Int B>
+constexpr auto operator-(Constant<A, B>, Constant<A, B>) {
+	return Constant<0>{};
+}
+
+template <typename T, Int A, Int B>
+constexpr auto operator-(T lhs, Constant<A, B> rhs) -> std::enable_if_t<std::is_arithmetic_v<T>, T> {
+	return lhs - static_cast<T>(rhs);
+}
+
+template <typename T, Int A, Int B>
+constexpr auto operator-(Constant<A, B> lhs, T rhs) -> std::enable_if_t<std::is_arithmetic_v<T>, T> {
+	return static_cast<T>(lhs) - rhs;
+}
+
+template <Int A, Int B, Int C, Int D>
+constexpr auto operator*(Constant<A, B>, Constant<C, D>) {
+	using R = std::ratio_multiply<std::ratio<A, B>, std::ratio<C, D>>;
+	return Constant<R::num, R::den>{};
+}
+
+template <Int A, Int B>
+constexpr auto operator*(Constant<A, B>, Constant<A, B>) {
+	using R = std::ratio_multiply<std::ratio<A, B>, std::ratio<A, B>>;
+	return Constant<R::num, R::den>{};
+}
+
+template <typename T, Int A, Int B>
+constexpr auto operator*(T lhs, Constant<A, B> rhs) -> std::enable_if_t<std::is_arithmetic_v<T>, T> {
+	return lhs*static_cast<T>(rhs);
+}
+
+template <typename T, Int A, Int B>
+constexpr auto operator*(Constant<A, B> lhs, T rhs) -> std::enable_if_t<std::is_arithmetic_v<T>, T> {
+	return static_cast<T>(lhs)*rhs;
+}
+
+template <Int A, Int B, Int C, Int D>
+constexpr auto operator/(Constant<A, B>, Constant<C, D>) {
+	static_assert(C != 0, "Attempting to divide by 0!");
+	using R = std::ratio_divide<std::ratio<A, B>, std::ratio<C, D>>;
+	return Constant<R::num, R::den>{};
+}
+
+template <typename T, Int A, Int B>
+constexpr auto operator/(T lhs, Constant<A, B> rhs) -> std::enable_if_t<std::is_arithmetic_v<T>, T> {
+	return lhs/static_cast<T>(rhs);
+}
+
+template <typename T, Int A, Int B>
+constexpr auto operator/(Constant<A, B> lhs, T rhs) -> std::enable_if_t<std::is_arithmetic_v<T>, T> {
+	return static_cast<T>(lhs)/rhs;
+}
+
+// power operator with integers, if rational powers are needed do it later
+template <Int A, Int N>
+constexpr auto operator^(Constant<A, 1>, Constant<N, 1>) {
+	if constexpr (0 == N) {
+		// anything to power 0 is 1
+		return Constant<1>{};
+	}
+	else if constexpr (-1 == N) {
+		return Constant<1>{} / Constant<A>{};
+	}
+	else if constexpr (0 > N) {
+		// negative powers mean divide
+		return Constant<1>{} / (Constant<A>{}^ Constant<-N>{});
+	}
+	else {
+		// standard recursive power definition, could probably be better
+		constexpr auto A_N = util::pow(A, N);
+
+		return Constant<A_N>{};
+	}
+}
+
+template <Int A, Int B, Int N>
+constexpr auto operator^(Constant<A, B>, Constant<N, 1>) {
+	return (Constant<A>{}^ Constant<N>{}) / (Constant<B>{}^ Constant<N>{});
+}
+
 
 namespace literals {
 namespace detail {
@@ -100,7 +225,7 @@ constexpr auto combine_decimals(Constant<A>) { return Constant<A>{}; }
 
 template <Int A, Int B, typename... Cs>
 constexpr auto combine_decimals(Constant<A, B>, Cs... digits) {
-    return Constant<A, B>{} + Constant<1, 10>{}*combine_decimals(digits...);
+	return Constant<A, B>{} + Constant<1, 10>{}*combine_decimals(digits...);
 }
 
 template <Int A, Int B>
@@ -108,12 +233,12 @@ constexpr auto combine(Constant<A, B>) { return Constant<A, B>{}; }
 
 template <Int A, Int B, typename... Cs>
 constexpr auto combine(Constant<A, B>, std::integral_constant<char, '.'>, Cs... digits) {
-    return Constant<A, B>{} + Constant<1, 10>{}*combine_decimals(digits...);
+	return Constant<A, B>{} + Constant<1, 10>{}*combine_decimals(digits...);
 }
 
 template <Int A, Int B, Int C, typename... Cs>
 constexpr auto combine(Constant<A, B>, Constant<C>, Cs... digits) {
-    return combine(Constant<10>{}*Constant<A, B>{} + Constant<C>{}, digits...);
+	return combine(Constant<10>{}*Constant<A, B>{} + Constant<C>{}, digits...);
 }
 
 template <char... Cs>
@@ -128,7 +253,6 @@ constexpr auto operator "" _c() { return detail::literal_impl<Cs...>(); }
 
 }   // literals
 
-namespace operators {
 namespace detail {
 
 template <typename T>
@@ -138,6 +262,4 @@ template <Int A, Int B>
 struct is_constant<Constant<A, B>> : std::true_type {};
 
 }   //detail
-}   // operators
-
 }   // fields
