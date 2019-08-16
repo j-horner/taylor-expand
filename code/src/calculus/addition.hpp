@@ -97,7 +97,7 @@ auto print(Stream& os, T first, Rest... rest) -> void {
 template <typename Stream, typename... Fs>
 auto& operator<<(Stream& os, Addition<Fs...> y) {
 	os << "(";
-	detail::print(os, y.template get<Fs>()...);
+	fields::detail::print(os, y.template get<Fs>()...);
 	os << ")";
 
 	return os;

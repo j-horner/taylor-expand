@@ -136,9 +136,8 @@ constexpr auto operator*(Division<G, H> d, F f) { return (d.lhs * f) / d.rhs; }
 
 template <typename F>
 constexpr auto operator*(F lhs, F) {
-	using namespace literals;
 	if constexpr (std::is_same_v<std::decay_t<decltype(lhs)>, Constant<0>>) {
-		return 0_c;
+		return Constant<0>{};
 	}
 	else {
 		return Power<F, 2>{lhs};
@@ -160,20 +159,30 @@ template <typename F, Int N>
 constexpr auto operator*(F, Power<F, N> rhs) {
 	static_assert(sizeof(rhs) > 0, "silence unused variable warning");
 
-	using namespace literals;
 	if constexpr (N == -1) {
-		return 1_c;
+		return Constant<1>{};
 	}
 	else {
 		return Power<F, N + 1>{rhs};
 	}
 }
 
+template <typename F, Int N>
+constexpr auto operator*(Power<F, N> lhs, Power<F, N>) {
+	return Power<F, 2*N>{lhs};
+}
+
+template <typename F, Int N, Int M>
+constexpr auto operator*(Power<F, N> lhs, Power<F, M>) -> std::enable_if_t<(N != M) && (N + M != 0), Power<F, N + M>> {
+	return Power<F, N + M>{lhs};
+}
+
+
+
 template <typename F, typename G>
 constexpr auto operator*(Multiplication<F, G> lhs, G rhs) {
-	using namespace literals;
 	if constexpr (std::is_same_v<std::decay_t<decltype(rhs)>, Constant<0>>) {
-		return 0_c;
+		return Constant<0>{};
 	}
 	else {
 		return lhs.template get<0>() * Power<G, 2>{rhs};
@@ -202,7 +211,12 @@ constexpr auto operator*(Power<F, N> lhs, Multiplication<F, Gs...> rhs) {
 
 template <typename F, typename G, Int N>
 constexpr auto operator*(Multiplication<F, Power<G, N>> lhs, G rhs) {
-	return lhs.template get<0>() * Power<G, N + 1>{rhs};
+	if constexpr (N == -1) {
+		return lhs.template get<0>();
+	}
+	else {
+		return lhs.template get<0>() * Power<G, N + 1>{rhs};
+	}
 }
 
 template <typename F, typename... Gs, Int N>
@@ -248,8 +262,7 @@ constexpr auto operator*(F lhs, G rhs) {
 	static_assert(sizeof(rhs) > 0, "silence unused variable warning");
 
 	if constexpr (std::is_same_v<decltype(lhs), Constant<0>> || std::is_same_v<decltype(rhs), Constant<0>>) {
-		using namespace literals;
-		return 0_c;
+		return Constant<0>{};
 	}
 	else if constexpr (std::is_same_v<decltype(lhs), Constant<1>>) {
 		return rhs;
