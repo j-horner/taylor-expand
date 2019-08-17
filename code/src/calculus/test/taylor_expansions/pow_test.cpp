@@ -34,13 +34,16 @@ TEST_F(PowTest, Pow_Is_correct) {
 
             static_assert(y0 == 1);
             static_assert(y1 == 1_c + x*t_);
+
+			// TODO: these higher terms should be simplified to x(x-1)(x-2)...
             static_assert(y2 == 1_c + x*t_ + (1_c/2_c)*(x*x + (-1_c*x))*(t_^2_c));
             static_assert(y3 == 1_c + x*t_ + (1_c/2_c)*(x*x + (-1_c*x))*(t_^2_c) + (1_c/6_c)*((x^3_c) + (-3_c*(x^2_c)) + (2_c*x))*(t_^3_c));
         }
         
-		// MSVC:		N = 8 --> fatal error C1202: recursive type or function dependency context too complex
-		// clang-cl:	N = 7 --> LLVM error : out of memory
-        constexpr auto y = taylor_expand<6>(H, y_0, t_0);
+		// MSVC debug:		N = 12 --> error C2131: expression did not evaluate to a constant - note: failure was caused by evaluation exceeding step limit of 1048576 (/constexpr:steps<NUMBER>)
+		// MSVC release:	N = 14 --> error C2131: expression did not evaluate to a constant - note: failure was caused by evaluation exceeding step limit of 1048576 (/constexpr:steps<NUMBER>)
+		// clang-cl:		N = 12 --> LLVM error : out of memory
+        constexpr auto y = taylor_expand<11>(H, y_0, t_0);
 
         for (auto t_ : {-0.5, -0.1, 0.0, 0.1, 0.5, 0.9}) {
             const auto tau = 1.0 + t_;

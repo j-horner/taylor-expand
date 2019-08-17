@@ -191,26 +191,6 @@ constexpr auto d_dt(Multiplication<Fs...> y) {
     }
 }
 
-template <Int D = 1, typename F, typename G>
-constexpr auto d_dx(Division<F, G> y) {
-    static_assert(D >= 0);
-    if constexpr (D == 0) {
-        return y;
-    } else {
-        return d_dx<D - 1>(d_dx(y.lhs*Power<G, -1>{y.rhs}));
-    }
-}
-
-template <Int D = 1, typename F, typename G>
-constexpr auto d_dt(Division<F, G> y) {
-    static_assert(D >= 0);
-    if constexpr (D == 0) {
-        return y;
-    } else {
-        return d_dt<D - 1>(d_dt(y.lhs*Power<G, -1>{y.rhs}));
-    }
-}
-
 template <Int D = 1, typename F>
 constexpr auto d_dx(F f) {
 	static_assert(D == 0, "The derivative of unknown functions is only known for D == 0");

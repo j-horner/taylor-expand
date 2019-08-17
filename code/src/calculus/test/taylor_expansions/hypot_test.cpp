@@ -16,7 +16,7 @@ protected:
 TEST_F(HypotTest, Hypot_Is_Correct) {
 	using namespace literals;
 
-	constexpr auto H = [] (auto y) { return t*(y^(-1_c)); };
+	constexpr auto H = [] (auto y) { return t/y; };
 
 	constexpr auto y_0 = x;
 
@@ -50,7 +50,7 @@ TEST_F(HypotTest, Hypot_Is_Correct) {
 
 			const auto dt = 2.0*limit/5;
 
-			for (auto t_ = -limit; t_ <= limit; t_ += 0.1) {
+			for (auto t_ = -limit; t_ <= limit; t_ += dt) {
 				EXPECT_NEAR(y(0, x_, t_), y_exact(x_, t_), std::abs(util::pow(t_/x_, 5))) << "t = " << t_ << "\tx = " << x_ << std::endl;;
 			}
 		}

@@ -16,7 +16,7 @@ protected:
 TEST_F(CbrtTest, Cbrt_Is_correct) {
     using namespace literals;
 
-    constexpr auto H = [] (auto y) { return (1_c/3_c)*(y^(-2_c)); };
+	constexpr auto H = [](auto y) { return (1_c/(3_c*y*y)); };
 
     constexpr auto y_0 = 1_c;
     constexpr auto t_0 = 1_c;

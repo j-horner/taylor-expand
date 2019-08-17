@@ -102,38 +102,6 @@ constexpr auto operator*(Multiplication<Fs...> lhs, Multiplication<Gs...> rhs) {
 	}
 }
 
-// Division with common factors
-template <typename F, typename G, typename H>
-constexpr auto operator*(Multiplication<G, F> m, Division<H, F> d) { return m.template get<0>() * d.lhs; }
-
-template <typename F, typename G, typename H>
-constexpr auto operator*(Division<H, F> d, Multiplication<G, F> m) { return d.lhs * m.template get<0>(); }
-
-template <typename F, typename... Gs, typename H>
-constexpr auto operator*(Multiplication<F, Gs...> m, Division<H, F> d) { return m.template sub_product<1, sizeof...(Gs) + 1>() * d.lhs; }
-
-template <typename F, typename... Gs, typename H>
-constexpr auto operator*(Division<H, F> d, Multiplication<F, Gs...> m) { return d.lhs * m.template sub_product<1, sizeof...(Gs) + 1>(); }
-
-template <typename A, typename B, typename C>
-constexpr auto operator*(Division<A, B> lhs, Division<B, C> rhs) { return lhs.lhs / rhs.rhs; }
-
-template <typename A, typename B, typename C>
-constexpr auto operator*(Division<A, B> lhs, Division<C, A> rhs) { return rhs.lhs / lhs.rhs; }
-
-// Division with unrelated factors
-template <typename A, typename B, typename C, typename D>
-constexpr auto operator*(Division<A, B> lhs, Division<C, D> rhs) { return (lhs.lhs * rhs.lhs) / (lhs.rhs * rhs.rhs); }
-
-template <typename... Fs, typename A, typename B>
-constexpr auto operator*(Multiplication<Fs...> lhs, Division<A, B> rhs) { return (lhs * rhs.lhs) / rhs.rhs; }
-
-template <typename F, typename G, typename H>
-constexpr auto operator*(F f, Division<G, H> d) { return (f * d.lhs) / d.rhs; }
-
-template <typename F, typename G, typename H>
-constexpr auto operator*(Division<G, H> d, F f) { return (d.lhs * f) / d.rhs; }
-
 template <typename F>
 constexpr auto operator*(F lhs, F) {
 	if constexpr (std::is_same_v<std::decay_t<decltype(lhs)>, Constant<0>>) {

@@ -113,29 +113,6 @@ constexpr auto operator-(Multiplication<F, Gs...> lhs, Multiplication<Gs...> rhs
 	return (lhs.template get<0>() - 1_c) * rhs;
 }
 
-// Division with common factors
-template <typename F, typename G>
-constexpr auto operator-(Division<F, G> y, F f) {
-	using namespace literals;
-	return f * (1_c - y.rhs) / y.rhs;
-}
-
-template <typename F, typename G>
-constexpr auto operator-(F f, Division<F, G> y) {
-	using namespace literals;
-	return f * (y.rhs - 1_c) / y.rhs;
-}
-
-// Division with unrelated factors
-template <typename F, typename G, typename H>
-constexpr auto operator-(Division<F, G> lhs, H rhs) { return (lhs.lhs - lhs.rhs * rhs) / lhs.rhs; }
-
-template <typename F, typename G, typename H>
-constexpr auto operator-(H lhs, Division<F, G> rhs) { return (lhs * rhs.rhs - rhs.lhs) / rhs.rhs; }
-
-template <typename A, typename B, typename C, typename D>
-constexpr auto operator-(Division<A, B> lhs, Division<C, D> rhs) { return (lhs.lhs * rhs.rhs - lhs.rhs * rhs.lhs) / (lhs.rhs * rhs.rhs); }
-
 // Main Subtraction definition
 template <typename F, typename G>
 constexpr auto operator-(F lhs, G rhs) {

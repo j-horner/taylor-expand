@@ -22,7 +22,7 @@ constexpr auto pow(T x, Int n) noexcept {
 	static_assert(std::is_integral_v<Int>, "n must be an integral type.");
     static_assert(std::is_arithmetic_v<T>, "This function is intended to be used with arithmetic types.");
 
-	const auto N = std::abs(n);
+	const auto N = (n >= 0) ? n : -n;
 
     auto y = T{1};
     for (auto i = 0; i < N; ++i) {
