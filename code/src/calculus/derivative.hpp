@@ -5,8 +5,6 @@
 #include "functions/power.hpp"
 
 #include "addition.hpp"
-// #include "subtraction.hpp"
-// #include "division.hpp"
 
 #include "field.hpp"
 
@@ -146,10 +144,9 @@ constexpr auto d_dt(fields::detail::Field<Hamiltonian, M> phi) {
 		return phi;
 	}
 	else if constexpr (N == 1) {
-		// return phi.time_derivative();
 		auto H = phi.H();
 
-		return d_dx<M>(H(fields::detail::make_field(H)));
+		return d_dx<M>(H(fields::detail::Field{H}));
 	}
 	else {
 		return d_dt(d_dt<N - 1>(phi));

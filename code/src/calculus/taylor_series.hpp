@@ -62,7 +62,7 @@ template <typename Hamiltonian, typename Phi_0, typename T_0, Int... Ns>
 constexpr auto taylor_series(Hamiltonian H, Phi_0 phi_0, T_0 t_0, std::integer_sequence<Int, Ns...>) {
     static_assert(sizeof...(Ns) > 0);
 
-    auto phi = make_field(H);
+	auto phi = Field{ H };
 
     // the definition of a Taylor expansion
     return (... + ((d_dt<Ns>(phi)(phi_0, x, t_0)/Constant<util::factorial(Ns)>{})*((t - t_0)^Constant<Ns>{})));

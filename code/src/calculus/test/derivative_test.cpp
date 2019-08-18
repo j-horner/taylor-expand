@@ -145,7 +145,7 @@ TEST_F(DerivativeTest, Time_Derivative_Of_Fields_Is_Correct) {
     {
         constexpr auto H = [] (auto y) { return y; };
 
-        constexpr auto y = make_field(H);
+		constexpr auto y = Field{H};
 
         static_assert(d_dt(y) == H(y));
 
@@ -159,7 +159,7 @@ TEST_F(DerivativeTest, Time_Derivative_Of_Fields_Is_Correct) {
     {
         constexpr auto H = [] (auto y) { return y + 5_c; };
 
-        constexpr auto y = make_field(H);
+		constexpr auto y = Field{H};
 
         static_assert(d_dt(y) == H(y));
 
@@ -173,7 +173,7 @@ TEST_F(DerivativeTest, Time_Derivative_Of_Fields_Is_Correct) {
     {
         constexpr auto H = [] (auto y) { return 2_c*y; };
 
-        constexpr auto y = make_field(H);
+		constexpr auto y = Field{ H };
 
         static_assert(d_dt(y) == H(y));
 
@@ -189,7 +189,7 @@ TEST_F(DerivativeTest, Time_Derivative_Of_Fields_Is_Correct) {
     {
         constexpr auto H = [] (auto y) { return y*y; };
 
-        constexpr auto y = make_field(H);
+		constexpr auto y = Field{ H };
 
         static_assert(d_dt(y) == H(y));
 
@@ -206,7 +206,7 @@ TEST_F(DerivativeTest, Time_Derivative_Of_Fields_Is_Correct) {
     {
         constexpr auto H = [] (auto) { return x + t; };
 
-        constexpr auto y = make_field(H);
+		constexpr auto y = Field{ H };
 
         static_assert(d_dt(y) == H(y));
 
@@ -226,7 +226,7 @@ TEST_F(DerivativeTest, Time_Derivative_Of_Fields_Is_Correct) {
         
         constexpr auto H = [g] (auto y) { return g*y; };
 
-        constexpr auto y = make_field(H);
+		constexpr auto y = Field{ H };
 
         static_assert(d_dt(y) == H(y));
 
@@ -243,7 +243,7 @@ TEST_F(DerivativeTest, Time_Derivative_Of_Fields_Is_Correct) {
 		using fields::d_dx;
 		constexpr auto H = [] (auto y) { return d_dx<2>(y); };
 
-        constexpr auto y = make_field(H);
+		constexpr auto y = Field{ H };
 
         static_assert(d_dt(y) == H(y));
 

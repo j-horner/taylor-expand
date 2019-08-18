@@ -40,11 +40,6 @@ public:
 	}
 
 	///
-	/// @brief  Implements d_dt(...) (TODO: could remove this and make d_dt a friend). Takes advantage of: d_dt(d_dx<N>(y)) == d_dx<N>(d_dt(y))
-	///
-	// constexpr auto time_derivative() const { return operators::d_dx<N>(H_(Field<Hamiltonian>{H_})); }
-
-	///
 	/// @brief  Returns d_dx<N>(y).
 	///         Required for evaluating Taylor series coefficients from initial condition y_0.
 	///         x and t arguments are required for a compatible interface but are ignored.
@@ -78,10 +73,10 @@ auto& operator<<(Stream& os, Field<Hamiltonian, N>) {
 }
 
 ///
-/// @brief  Creates an object whose time derivative is given by the Hamiltonian
+///	@brief Deduction guide means newly created Fields do not have spatial derivative applied. (N = 0)
 ///
 template <typename Hamiltonian>
-constexpr auto make_field(Hamiltonian H) { return Field<Hamiltonian>{H}; }
+Field(Hamiltonian) -> Field<Hamiltonian, 0>;
 
 }	// detail
 }	// fields
