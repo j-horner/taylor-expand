@@ -7,6 +7,8 @@
 #include "addition.hpp"
 
 #include "field.hpp"
+#include "vector.hpp"
+#include "field_vector.hpp"
 
 namespace fields {
 
@@ -186,6 +188,49 @@ constexpr auto d_dt(Multiplication<Fs...> y) {
     } else {
         return d_dt<D - 1>(y.derivative([] (auto f) { return d_dt(f); }));
     }
+}
+
+// vectors
+template <Int D = 1, typename... Fs>
+constexpr auto d_dx(fields::Vector<Fs...> y) { return y.derivative([](auto f) { return d_dx<D>(f); }); }
+
+template <Int D = 1, typename... Fs>
+constexpr auto d_dt(fields::Vector<Fs...> y) { return y.derivative([](auto f) { return d_dt<D>(f); }); }
+
+template <Int N = 1, typename Hamiltonian, std::size_t D>
+constexpr auto d_dt(FieldVector<Hamiltonian, D> y) {
+	static_assert(N >= 0);
+
+	if constexpr (N == 0) {
+		return y;
+	}
+	else if constexpr (N == 1) {
+		return y.vector_of_time_derivatives();
+	}
+	else {
+		return d_dt<N - 1>(d_dt(y));
+	}
+}
+
+template <Int N = 1, typename Hamiltonian, std::size_t Idx, std::size_t Dim, Int SpatialDerivative>
+constexpr auto d_dt(FieldVectorComponent<Hamiltonian, Idx, Dim, SpatialDerivative> p) {
+	static_assert(N >= 0);
+
+	if constexpr (N == 0) {
+		return p;
+	}
+	else if constexpr (N == 1) {
+		return d_dx<SpatialDerivative>(p.equations.vector_of_time_derivatives().template get<Idx>());
+	}
+	else {
+		return d_dt<N - 1>(d_dt(p));
+	}
+}
+
+template <Int N = 1, typename Hamiltonian, std::size_t Idx, std::size_t Dim, Int SpatialDerivative>
+constexpr auto d_dx(FieldVectorComponent<Hamiltonian, Idx, Dim, SpatialDerivative> p) {
+	static_assert(N >= 0);
+	return FieldVectorComponent<Hamiltonian, Idx, Dim, SpatialDerivative + N>{p.equations};
 }
 
 template <Int D = 1, typename F>

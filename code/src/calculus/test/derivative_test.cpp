@@ -138,6 +138,22 @@ TEST_F(DerivativeTest, Derivative_Of_Linear_Is_Correct) {
     }
 }
 
+TEST_F(DerivativeTest, Derivative_Of_Vector_Is_Correct) {
+	using namespace fields;
+	using namespace literals;
+
+	constexpr auto v = Vector{ x , x * x, t * x, t * t - 3_c * x };
+
+	static_assert(d_dx(v) == Vector{ 1_c, 2_c * x, t, -3_c });
+	static_assert(d_dt(v) == Vector{ 0_c, 0_c, x, 2_c * t });
+
+	static_assert(d_dx<2>(v) == Vector{ 0_c, 2_c, 0_c, 0_c });
+	static_assert(d_dx(d_dt(v)) == d_dt(d_dx(v)));
+	static_assert(d_dx(d_dt(v)) == Vector{0_c, 0_c, 1_c, 0_c});
+	static_assert(d_dt<2>(v) == Vector{ 0_c, 0_c, 0_c, 2_c });
+
+}
+
 TEST_F(DerivativeTest, Time_Derivative_Of_Fields_Is_Correct) {
     using namespace fields::detail;
     using namespace literals;
@@ -257,8 +273,69 @@ TEST_F(DerivativeTest, Time_Derivative_Of_Fields_Is_Correct) {
         static_assert(d_dt<20>(y) == d_dx<40>(y));
         static_assert(d_dt<100>(y) == d_dx<200>(y));
     }
+}
+
+TEST_F(DerivativeTest, Time_Derivative_Of_FieldVector_Is_Correct) {
+	
+	{
+		// simple harmonic oscillator
+		constexpr auto H = [](auto sin, auto cos) { return Vector{ cos, -sin }; };
+
+		constexpr auto y = make_field_vector<2>(H);
+
+		constexpr auto y0 = y.vector_of_fields();
+
+		constexpr auto dydt = d_dt(y);
+
+		static_assert(dydt == H(y0.get<0>(), y0.get<1>()));
+		static_assert(dydt == Vector{ y0.get<1>(), -y0.get<0>() });
+
+
+		static_assert(d_dt<2>(y) == H(dydt.get<0>(), dydt.get<1>()));
+
+
+		static_assert(d_dt<3>(y) == -dydt);
+		static_assert(d_dt<5>(y) == dydt);
+
+		static_assert(d_dt<2>(y) == -y0);
+		static_assert(d_dt<6>(y) == -y0);
+
+		static_assert(d_dt<4>(y) == y0);
+		static_assert(d_dt<8>(y) == y0);
+	}
+
+	{
+		// schroedinger free particle, real and imaginary parts
+		constexpr auto H = [](auto real, auto imag) { return Vector{ -d_dx<2>(imag), d_dx<2>(real) };  };
+
+		constexpr auto phi = make_field_vector<2>(H);
+
+		constexpr auto phi0 = phi.vector_of_fields();
+
+		constexpr auto dphi_dt = d_dt(phi);
+
+		static_assert(dphi_dt == H(phi0.get<0>(), phi0.get<1>()));
+
+		static_assert(dphi_dt == Vector{ -d_dx<2>(phi0.get<1>()), d_dx<2>(phi0.get<0>()) });
+		static_assert(dphi_dt == d_dx<2>(Vector{ -phi0.get<1>(), phi0.get<0>() }));
+
+		constexpr auto px = phi0.get<0>();
+
+		static_assert(d_dx(d_dx<2>(d_dx<5>(px))) == d_dx<8>(px));
+
+		static_assert(d_dt(d_dx(d_dt(d_dx(px)))) == d_dx<2>(d_dt<2>(px)));
+
+		static_assert(d_dt<2>(phi) == -d_dx<4>(phi0));
+
+		static_assert(d_dt<4>(phi) == d_dx<8>(phi0));
+
+		static_assert(d_dt<5>(phi) == d_dx<10>(Vector{ -phi0.get<1>(), phi0.get<0>() }));
+
+		static_assert(d_dt<40>(phi) == d_dx<80>(phi0));
+	}
 
 }
+
 
 // }   // test
 }   // fields

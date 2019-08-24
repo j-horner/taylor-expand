@@ -3,6 +3,8 @@
 #include "../multiplication.hpp"
 #include "../division.hpp"
 
+#include "../vector.hpp"
+
 #include "../functions/power.hpp"
 
 namespace fields {
@@ -145,8 +147,6 @@ constexpr auto operator*(Power<F, N> lhs, Power<F, M>) -> std::enable_if_t<(N !=
 	return Power<F, N + M>{lhs};
 }
 
-
-
 template <typename F, typename G>
 constexpr auto operator*(Multiplication<F, G> lhs, G rhs) {
 	if constexpr (std::is_same_v<std::decay_t<decltype(rhs)>, Constant<0>>) {
@@ -222,6 +222,12 @@ constexpr auto operator*(Constant<A, B> lhs, Power<Multiplication<Constant<C, D>
 	constexpr auto n = Constant<N>{};
 	return (lhs * (rhs.f().template get<0>() ^ n)) * (rhs.f().template sub_product<1, sizeof...(Fs) + 1>() ^ n);
 }
+
+template <typename F, typename... Fs>
+constexpr auto operator*(F f, Vector<Fs...> v) {
+	return v.multiply_scalar(f);
+}
+
 
 // Main Multiplication
 template <typename F, typename G>
