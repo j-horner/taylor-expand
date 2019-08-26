@@ -1,13 +1,8 @@
 #include "../../taylor_series.hpp"
 
-#include "../../vector.hpp"
-#include "../../field_vector.hpp"
-
 #include "../../comparison.hpp"
 
 #include <gtest/gtest.h>
-
-#include <iostream>
 
 #include <cmath>
 
