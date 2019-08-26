@@ -1,20 +1,16 @@
 #pragma once
 
 #include "../../util/util.hpp"
+#include "../../util/integer.hpp"
 
 // C++ headers
 #include <ratio>
 #include <utility>
 
-// C headers
-#include <cstdint>
-
 namespace fields {
 
 // A class to represent constant functions
 // Basically std::ratio with a few extra things
-
-using Int = std::intmax_t;
 
 template <Int Num, Int Denom = 1>
 class Constant : std::ratio<Num, Denom> {

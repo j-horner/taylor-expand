@@ -78,7 +78,7 @@ constexpr auto taylor_series(Hamiltonian H, Vector<Phis...> phi_0, T_0 t_0, std:
 	static_assert(sizeof...(Phis) > 1);
 
 	
-	auto phis = make_phi_vector<sizeof...(Phis)>(H);
+	auto phis = make_field_vector<sizeof...(Phis)>(H);
 
 	// the definition of a Taylor expansion
 	return (... + ((d_dt<Ns>(phis)(phi_0, x, t_0) / Constant<util::factorial(Ns)>{})* ((t - t_0) ^ Constant<Ns>{})));

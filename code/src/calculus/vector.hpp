@@ -25,6 +25,9 @@ class Vector {
 	template <typename F>
 	constexpr auto multiply_scalar(F f) const { return multiply_scalar_impl(f, component_indicies_); }
 
+	template <typename... Us>
+	constexpr auto addition(Vector<Us...> u) const { return addition_impl(u, component_indicies_); }
+
  private:
 	 template <std::size_t... Is, typename Tuple>
 	 constexpr auto function_call_impl(std::index_sequence<Is...>, Tuple args) const { return Vector<decltype((std::apply(get<Is>(), args))) ...>{ (std::apply(get<Is>(), args)) ... }; }
@@ -34,6 +37,9 @@ class Vector {
 	 
 	 template <typename F, std::size_t... Is>
 	 constexpr auto multiply_scalar_impl(F f, std::index_sequence<Is...>) const { return Vector<decltype((f * get<Is>()))...>{(f* get<Is>()) ... }; }
+
+	 template <typename... Us, std::size_t... Is>
+	 constexpr auto addition_impl(Vector<Us...> u, std::index_sequence<Is...>) const { return Vector<decltype(get<Is>() + u.template get<Is>())...>{(get<Is>() + u.template get<Is>())...}; }
 
 	 std::tuple<Ts...> components_;
 
@@ -47,3 +53,17 @@ Vector(Args...)->Vector<Args...>;
 
 
 }	// fields
+
+namespace std {
+
+template <typename... Ts>
+struct tuple_size<fields::Vector<Ts...>> {
+	constexpr static auto value = sizeof...(Ts);
+};
+
+template <std::size_t I, typename... Ts>
+struct tuple_element<I, fields::Vector<Ts...>> : tuple_element<I, tuple<Ts...>> {
+
+};
+
+}	// std

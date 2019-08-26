@@ -161,11 +161,6 @@ constexpr auto operator+(Multiplication<F, Gs...> lhs, Multiplication<Gs...> rhs
 	return (lhs.template get<0>() + 1_c) * rhs;
 }
 
-/*template <typename F, typename G, typename... Gs>
-constexpr auto operator+(Multiplication<F, Gs...> lhs, Multiplication<G, Gs...> rhs) {
-	return (lhs.template get<0>() + rhs.template get<0>()) * lhs.template sub_product<1, sizeof...(Gs) + 1>();
-}*/
-
 template <typename F, typename... Gs>
 constexpr auto operator+(Multiplication<F, Gs...> lhs, Multiplication<F, Gs...> rhs) {
 	return (Constant<2>{}*lhs.template get<0>())* rhs.template sub_product<1, sizeof...(Gs) + 1>();
@@ -176,20 +171,18 @@ constexpr auto operator+(Multiplication<Fs...> lhs, Multiplication<Gs...> rhs) -
 	return Constant<2>{}*lhs;
 }
 
-/*template <Int A, Int B, Int C, Int D, typename... Gs>
-constexpr auto operator+(Multiplication<Constant<A, B>, Gs...> lhs, Multiplication<Constant<C, D>, Gs...> rhs) {
-	return (lhs.template get<0>() + rhs.template get<0>()) * lhs.template sub_product<1, sizeof...(Gs) + 1>();
-}*/
-
-/*template <Int A, Int B, Int C, Int D, typename... Fs, typename... Gs>
-constexpr auto operator+(Multiplication<Constant<A, B>, Fs...> lhs, Multiplication<Constant<C, D>, Gs...>)->std::enable_if_t < util::is_same<Multiplication<Fs...>, Multiplication<Gs...>>::value, Multiplication<decltype(Constant<A, B>{} +Constant<C, D>{}), Fs... >> {
-	return (Constant<A, B>{} + Constant<C, D>{})* lhs.template sub_product<1, sizeof...(Fs) + 1>();
-}*/
-
 template <typename F, typename G, typename... Fs, typename... Gs>
 constexpr auto operator+(Multiplication<F, Fs...> lhs, Multiplication<G, Gs...> rhs)->std::enable_if_t < util::is_same<Multiplication<Fs...>, Multiplication<Gs...>>::value, Multiplication<decltype(F{} + G{}), Fs... >> {
 	return (lhs.template get<0>() + rhs.template get<0>())* lhs.template sub_product<1, sizeof...(Fs) + 1>();
 }
+
+template <typename... Ts, typename... Us>
+constexpr auto operator+(Vector<Ts...> v, Vector<Us...> u) {
+	static_assert(sizeof...(Ts) == sizeof...(Us));
+	return v.addition(u);
+}
+
+
 
 // Main Addition
 template <typename F, typename G>

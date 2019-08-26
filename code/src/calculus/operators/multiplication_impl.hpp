@@ -228,6 +228,10 @@ constexpr auto operator*(F f, Vector<Fs...> v) {
 	return v.multiply_scalar(f);
 }
 
+template <typename F, typename... Fs>
+constexpr auto operator*(Vector<Fs...> v, F f) {
+	return v.multiply_scalar(f);
+}
 
 // Main Multiplication
 template <typename F, typename G>

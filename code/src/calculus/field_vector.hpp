@@ -1,15 +1,13 @@
 #pragma once
 
+#include "../util/integer.hpp"
+
 #include "vector.hpp"
 
 #include <tuple>
 #include <utility>
 
-#include <cstdint>
-
 namespace fields {
-
-using Int = std::intmax_t;
 
 // TODO: make a nested struct
 template <typename Hamiltonian, std::size_t Idx, std::size_t Dim, Int SpatialDerivative>
@@ -47,7 +45,7 @@ public:
 template <typename Hamiltonian, std::size_t Idx, std::size_t Dim, Int SpatialDerivative>
 struct FieldVectorComponent {
 	template <typename... Ys, typename X_, typename T_>
-	constexpr auto operator()(Vector<Ys...> y, X_, T_) const { static_assert(sizeof...(Ys) == Dim); return y.get<Idx>(); }
+	constexpr auto operator()(Vector<Ys...> y, X_, T_) const { static_assert(sizeof...(Ys) == Dim); return y.template get<Idx>(); }
 
 	FieldVector<Hamiltonian, Dim> equations;
 };
