@@ -27,6 +27,8 @@ class Power {
     static_assert(std::is_same_v<F, Constant<0, 1>> == false, "0 should not have powers taken! 0^N: -> 0 for N > 0, -> 1 for N = 0 and is undefined for N < 0.");
     static_assert(std::is_same_v<F, Constant<1, 1>> == false, "1 should not have powers taken! 1^N: -> 1 for and N.");
 
+	static_assert(fields::detail::is_constant<F>::value == false, "Power of Constant should be another Constant");
+
     static_assert(N != 0, "F^0 -> 1");
     static_assert(N != 1, "F^1 -> F");
 
@@ -49,7 +51,9 @@ class Power {
             return 0_c;
         } else if constexpr (std::is_same_v<decltype(f_(args...)), Constant<1, 1>>) {
             return 1_c;
-        } else {
+		} else if constexpr (fields::detail::is_constant<decltype(f_(args...))>::value) {
+			return (f_(args...))^Constant<N>{};
+		} else {
             return Power<decltype(f_(args...)), N>{f_(args...)};
         }
     }
@@ -75,10 +79,10 @@ constexpr auto operator^(F, Constant<0, 1>) {
 }
 
 template <typename F>
-constexpr auto operator^(F f, Constant<1, 1>) { return f; }
+constexpr auto operator^(F f, Constant<1, 1>) { static_assert(fields::detail::is_constant<F>::value == false); return f; }
 
 template <typename F, Int N>
-constexpr auto operator^(F f, Constant<N, 1>) { return Power<F, N>{f}; }
+constexpr auto operator^(F f, Constant<N, 1>) { static_assert(fields::detail::is_constant<F>::value == false); return Power<F, N>{f}; }
 
 template <typename F, Int N, Int M>
 constexpr auto operator^(Power<F, N> f, Constant<M, 1>) {

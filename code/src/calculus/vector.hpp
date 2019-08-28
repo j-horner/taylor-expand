@@ -28,6 +28,9 @@ class Vector {
 	template <typename... Us>
 	constexpr auto addition(Vector<Us...> u) const { return addition_impl(u, component_indicies_); }
 
+	template <typename Stream>
+	auto print(Stream& os) const -> void { print_impl(os, component_indicies_); }
+
  private:
 	 template <std::size_t... Is, typename Tuple>
 	 constexpr auto function_call_impl(std::index_sequence<Is...>, Tuple args) const { return Vector<decltype((std::apply(get<Is>(), args))) ...>{ (std::apply(get<Is>(), args)) ... }; }
@@ -41,6 +44,22 @@ class Vector {
 	 template <typename... Us, std::size_t... Is>
 	 constexpr auto addition_impl(Vector<Us...> u, std::index_sequence<Is...>) const { return Vector<decltype(get<Is>() + u.template get<Is>())...>{(get<Is>() + u.template get<Is>())...}; }
 
+	 template <typename Stream, typename T>
+	 auto print(Stream& os, T last) const -> void {
+		 os << last;
+	 }
+	 
+	 template <typename Stream, typename T, typename... Rest>
+	 auto print(Stream& os, T first, Rest... rest) const -> void {
+		 os << first << " , ";
+		 print(os, rest...);
+	 }
+
+	 template <typename Stream, std::size_t... Is>
+	 constexpr auto print_impl(Stream& os, std::index_sequence<Is...>) const -> void {
+		 print(os, get<Is>()...);
+	 }
+
 	 std::tuple<Ts...> components_;
 
 	 constexpr static auto N = sizeof...(Ts);
@@ -49,7 +68,16 @@ class Vector {
 };
 
 template <typename... Args>
-Vector(Args...)->Vector<Args...>;
+Vector(Args...) -> Vector<Args...>;
+
+template <typename Stream, typename... Fs>
+auto& operator<<(Stream& os, Vector<Fs...> y) {
+	os << "(";
+	y.print(os);
+	os << ")";
+
+	return os;
+}
 
 
 }	// fields

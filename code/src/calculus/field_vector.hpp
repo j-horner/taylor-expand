@@ -55,4 +55,16 @@ constexpr auto make_field_vector(Hamiltonian H) {
 	return FieldVector<Hamiltonian, Dim>{H};
 }
 
+template <typename Stream, typename Hamiltonian, std::size_t Idx, std::size_t Dim, Int SpatialDerivative>
+auto& operator<<(Stream& os, FieldVectorComponent<Hamiltonian, Idx, Dim, SpatialDerivative> y) {
+	if constexpr (SpatialDerivative != 0) {
+		os << "d_dx<" << SpatialDerivative << ">(y[" << Idx << "])";
+	}
+	else {
+		os << "y[" << Idx << "]";
+	}
+
+	return os;
+}
+
 }	// fields
