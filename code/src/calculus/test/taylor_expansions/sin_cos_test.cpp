@@ -28,11 +28,14 @@ TEST_F(SinCosTest, Sin_Cos_Is_Correct) {
 		static_assert(y0 == y_0);
 		
 		// structured bindings cannot be constexpr...
-		auto [sin, cos] = taylor_expand<6>(H, y_0);
+		constexpr auto y = taylor_expand<6>(H, y_0);
+
+		constexpr auto sin = y.get<0>();
+		constexpr auto cos = y.get<0>();
 
 		// ...therefore we have to use std::is_same directly
-		static_assert(std::is_same_v<decltype(sin), decltype(t + (-1_c / 6_c) * (t ^ 3_c) + (1_c / 120_c) * (t ^ 5_c))>);
-		static_assert(std::is_same_v<decltype(cos), decltype(1_c + (-1_c / 2_c) * (t ^ 2_c) + (1_c / 24_c) * (t ^ 4_c) + (-1_c/720_c)*(t^6_c))>);
+		static_assert(sin == t + (-1_c / 6_c) * (t ^ 3_c) + (1_c / 120_c) * (t ^ 5_c));
+		static_assert(cos == 1_c + (-1_c / 2_c) * (t ^ 2_c) + (1_c / 24_c) * (t ^ 4_c) + (-1_c/720_c)*(t^6_c));
 	}
 
 	{
