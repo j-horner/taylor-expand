@@ -43,7 +43,7 @@ TEST_F(ArcCosTest, Arc_Cos_Is_Correct) {
 		// N = 10 --> MSVC Debug: fatal error C1060: compiler is out of heap space
 		// N = 10 --> MSVC Release: fatal error C1060: compiler is out of heap space
 		// N = 9 --> clang: LLVM error : out of memory
-		constexpr auto y = taylor_expand<7>(H, y_0).get<0>();
+		constexpr auto y = taylor_expand<8>(H, y_0).get<0>();
 
 		for (auto t_ : { -0.9, -0.75, -0.5, -0.2, -0.1, 0.0, 0.1, 0.2, 0.5, 0.75, 0.9 }) {
 			EXPECT_NEAR(y(0, 0, t_), y_exact(t_), std::abs(util::pow(t_, 10)));

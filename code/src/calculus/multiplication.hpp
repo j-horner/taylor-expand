@@ -32,7 +32,7 @@ class Multiplication {
     }
 
     template <typename... Args>
-    constexpr auto operator()(Args... args) const { return multiply_impl(std::make_index_sequence<N>{}, std::make_tuple(args...)); }
+    constexpr auto operator()(Args... args) const { return multiply_impl(components_{}, std::make_tuple(args...)); }
 
     template <std::size_t I>
     constexpr auto get() const { return std::get<I>(fs); }
@@ -42,15 +42,17 @@ class Multiplication {
 
     template <std::size_t I, std::size_t J>
     constexpr auto sub_product() const {
-        static_assert((I <= N) && (J <= N) && (I <= J), "Expect following conditions on I, J: (I <= N) && (J <= N) && (I <= J)");
+        static_assert((I <= sizeof...(Fs)) && (J <= sizeof...(Fs)) && (I <= J), "Expect following conditions on I, J: (I <= N) && (J <= N) && (I <= J)");
         return subset_impl<I>(std::make_index_sequence<J - I>{});
     }
 
     template <typename D>
-    constexpr auto derivative(D d) const { return derivative_impl(d, std::make_index_sequence<N>{}); }
+    constexpr auto derivative(D d) const { return derivative_impl(d, components_{}); }
 
  private:
-    template <typename... Gs> friend class Multiplication;
+	using components_ = std::make_index_sequence<sizeof...(Fs)>;
+	 
+	template <typename... Gs> friend class Multiplication;
 
     explicit constexpr Multiplication(std::tuple<Fs...> ts) : fs(ts) {
     }
@@ -69,11 +71,11 @@ class Multiplication {
     template <std::size_t I, typename D>
     constexpr auto product_rule_term(D d) const {
         if constexpr (I == 0) {
-            return d(get<0>())*sub_product<1, N>();
-        } else if constexpr (I == (N - 1)) {
-            return sub_product<0, N - 1>()*d(get<N - 1>());
+            return d(get<0>())*sub_product<1, sizeof...(Fs)>();
+        } else if constexpr (I == (sizeof...(Fs) - 1)) {
+            return sub_product<0, sizeof...(Fs) - 1>()*d(get<sizeof...(Fs) - 1>());
         } else {
-            return sub_product<0, I>()*d(get<I>())*sub_product<I + 1, N>();
+            return sub_product<0, I>()*d(get<I>())*sub_product<I + 1, sizeof...(Fs)>();
         }
     }
 
@@ -87,8 +89,6 @@ class Multiplication {
     }
 
     std::tuple<Fs...> fs;
-
-    constexpr static auto N = sizeof...(Fs);
 };
 
 template <typename Stream, typename... Fs>

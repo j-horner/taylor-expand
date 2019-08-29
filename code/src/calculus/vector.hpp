@@ -17,19 +17,19 @@ class Vector {
 	constexpr auto get() const { return std::get<I>(components_); }
 
 	template <typename... Args>
-	constexpr auto operator()(Args... args) const { return function_call_impl(component_indicies_, std::make_tuple(args...)); }
+	constexpr auto operator()(Args... args) const { return function_call_impl(component_indicies_{}, std::make_tuple(args...)); }
 
 	template <typename D>
-	constexpr auto derivative(D d) const { return derivative_impl(d, component_indicies_); }
+	constexpr auto derivative(D d) const { return derivative_impl(d, component_indicies_{}); }
 
 	template <typename F>
-	constexpr auto multiply_scalar(F f) const { return multiply_scalar_impl(f, component_indicies_); }
+	constexpr auto multiply_scalar(F f) const { return multiply_scalar_impl(f, component_indicies_{}); }
 
 	template <typename... Us>
-	constexpr auto addition(Vector<Us...> u) const { return addition_impl(u, component_indicies_); }
+	constexpr auto addition(Vector<Us...> u) const { return addition_impl(u, component_indicies_{}); }
 
 	template <typename Stream>
-	auto print(Stream& os) const -> void { print_impl(os, component_indicies_); }
+	auto print(Stream& os) const -> void { print_impl(os, component_indicies_{}); }
 
  private:
 	 template <std::size_t... Is, typename Tuple>
@@ -62,9 +62,7 @@ class Vector {
 
 	 std::tuple<Ts...> components_;
 
-	 constexpr static auto N = sizeof...(Ts);
-
-	 constexpr static auto component_indicies_ = std::make_index_sequence<N>{};
+	 using component_indicies_ = std::make_index_sequence<sizeof...(Ts)>;
 };
 
 template <typename... Args>

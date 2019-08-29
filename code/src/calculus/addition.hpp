@@ -32,7 +32,7 @@ public:
 	}
 
 	template <typename... Args>
-	constexpr auto operator()(Args... args) const { return sum_impl(std::make_index_sequence<N>{}, std::make_tuple(args...)); }
+	constexpr auto operator()(Args... args) const { return sum_impl(components_{}, std::make_tuple(args...)); }
 
 	template <std::size_t I>
 	constexpr auto get() const { return std::get<I>(fs); }
@@ -42,14 +42,16 @@ public:
 
 	template <std::size_t I, std::size_t J>
 	constexpr auto sub_sum() const {
-		static_assert((I <= N) && (J <= N) && (I <= J), "Expect following conditions on I, J: (I <= N) && (J <= N) && (I <= J)");
+		static_assert((I <= sizeof...(Fs)) && (J <= sizeof...(Fs)) && (I <= J), "Expect following conditions on I, J: (I <= N) && (J <= N) && (I <= J)");
 		return subset_impl<I>(std::make_index_sequence<J - I>{});
 	}
 
 	template <typename D>
-	constexpr auto derivative(D d) const {  return derivative_impl(d, std::make_index_sequence<N>{}); }
+	constexpr auto derivative(D d) const {  return derivative_impl(d, components_{}); }
 
 private:
+	using components_ = std::make_index_sequence<sizeof...(Fs)>;
+	
 	template <typename... Gs> friend class Addition;
 
 	explicit constexpr Addition(std::tuple<Fs...> ts) : fs(ts) {
@@ -72,8 +74,6 @@ private:
 	}
 
 	std::tuple<Fs...> fs;
-
-	constexpr static auto N = sizeof...(Fs);
 };
 
 namespace detail {
