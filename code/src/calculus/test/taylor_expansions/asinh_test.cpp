@@ -9,20 +9,18 @@
 namespace fields {
 namespace test {
 
-class ArcCosTest : public ::testing::Test {
+class ArcSinhTest : public ::testing::Test {
 protected:
 };
 
-TEST_F(ArcCosTest, Arc_Cos_Is_Correct) {
+TEST_F(ArcSinhTest, Arc_Sinh_Is_Correct) {
 	using namespace literals;
 
-	constexpr auto H = [](auto y, auto dy_dt) { return Vector{ dy_dt, t*(dy_dt ^ 3_c) }; };
+	constexpr auto H = [](auto y, auto dy_dt) { return Vector{ dy_dt, -t*(dy_dt^3_c) }; };
 
-	constexpr auto pi_2 = 1.5707963267948966_c;
+	constexpr auto y_0 = Vector{ 0_c, 1_c };
 
-	constexpr auto y_0 = Vector{ pi_2, -1_c };
-
-	constexpr auto y_exact = [](double t_) { return std::acos(t_); };
+	constexpr auto y_exact = [](double t_) { return std::asinh(t_); };
 	{
 		constexpr auto y0 = taylor_expand<0>(H, y_0);
 		constexpr auto y1 = taylor_expand<1>(H, y_0).get<0>();
@@ -30,11 +28,12 @@ TEST_F(ArcCosTest, Arc_Cos_Is_Correct) {
 		constexpr auto y3 = taylor_expand<3>(H, y_0).get<0>();
 		constexpr auto y5 = taylor_expand<5>(H, y_0).get<0>();
 
+
 		static_assert(y0 == y_0);
-		static_assert(y1 == pi_2 + (-1_c*t));
-		static_assert(y2 == pi_2 + (-1_c*t));
-		static_assert(y3 == pi_2 + (-1_c*t) + (-1_c/6_c)*(t^3_c));
-		static_assert(y5 == pi_2 + (-1_c * t) + (-1_c / 6_c)*(t^3_c) + (-3_c/40_c)*(t^5_c));
+		static_assert(y1 == t);
+		static_assert(y2 == t);
+		static_assert(y3 == t + (-1_c/6_c)*(t^3_c));
+		static_assert(y5 == t + (-1_c/6_c)*(t^3_c) + (3_c/40_c)*(t^5_c));
 	}
 
 	{
