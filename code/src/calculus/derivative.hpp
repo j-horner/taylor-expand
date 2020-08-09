@@ -5,6 +5,7 @@
 #include "functions/power.hpp"
 
 #include "addition.hpp"
+#include "subtraction.hpp"
 
 #include "field.hpp"
 #include "vector.hpp"

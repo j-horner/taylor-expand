@@ -3,10 +3,7 @@
 #include "../comparison.hpp"
 #include "../functions/linear.hpp"
 
-#include "../addition.hpp"
-#include "../subtraction.hpp"
-#include "../multiplication.hpp"
-#include "../division.hpp"
+#include "../operators/math_operators.hpp"
 
 #include <gtest/gtest.h>
 

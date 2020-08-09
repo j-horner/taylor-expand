@@ -2,10 +2,13 @@
 
 #include "functions/constant.hpp"
 
-#include "operators/multiplication.hpp"
+#include "../util/integer.hpp"
 
 // C++ headers
 #include <tuple>
+
+// C headers
+#include <cstddef>
 
 namespace fields {
 
@@ -123,5 +126,3 @@ struct is_multiple<Multiplication<Constant<A, B>, Fs...>, Multiplication<Constan
 }   //detail
 
 }   // fields
-
-#include "operators/multiplication_impl.hpp"

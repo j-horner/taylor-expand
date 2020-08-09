@@ -1,12 +1,12 @@
 #pragma once
 
-#include "functions/linear.hpp"
-#include "functions/constant.hpp"
-
-#include "operators/addition.hpp"
 
 // C++ headers
 #include <tuple>
+#include <utility>
+
+// C headers
+#include <cstddef>
 
 namespace fields {
 
@@ -104,5 +104,3 @@ auto& operator<<(Stream& os, Addition<Fs...> y) {
 }
 
 }	// fields
-
-#include "operators/addition_impl.hpp"

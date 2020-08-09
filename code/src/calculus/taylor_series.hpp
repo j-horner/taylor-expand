@@ -1,5 +1,7 @@
 #pragma once
 
+#include "operators/math_operators.hpp"
+
 #include "functions/constant.hpp"
 
 #include "../util/util.hpp"

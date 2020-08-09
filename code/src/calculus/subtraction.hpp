@@ -1,7 +1,5 @@
 #pragma once
 
-#include "operators/subtraction.hpp"
-
 namespace fields {
 
 template <typename F, typename G>
@@ -21,5 +19,3 @@ auto& operator<<(Stream& os, Subtraction<F, G> y) {
 }
 
 } // fields
-
-#include "operators/subtraction_impl.hpp"
