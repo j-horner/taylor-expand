@@ -10,11 +10,11 @@ namespace fields {
 namespace test {
 
 // Class to test the integration of various equations
-class TanTest : public ::testing::Test {
+class TanhTest : public ::testing::Test {
  protected:
 };
 
-TEST_F(TanTest, Tan_Is_Correct) {
+TEST_F(TanhTest, Tanh_Is_Correct) {
     using namespace literals;
 
     constexpr auto H = [] (auto y) { return 1_c - y*y; };

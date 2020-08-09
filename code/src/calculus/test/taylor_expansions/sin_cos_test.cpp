@@ -31,7 +31,7 @@ TEST_F(SinCosTest, Sin_Cos_Is_Correct) {
 		constexpr auto y = taylor_expand<6>(H, y_0);
 
 		constexpr auto sin = y.get<0>();
-		constexpr auto cos = y.get<0>();
+		constexpr auto cos = y.get<1>();
 
 		// ...therefore we have to use std::is_same directly
 		static_assert(sin == t + (-1_c / 6_c) * (t ^ 3_c) + (1_c / 120_c) * (t ^ 5_c));

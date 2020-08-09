@@ -79,7 +79,7 @@ private:
 namespace detail {
 
 template <typename Stream, typename T, typename... Rest>
-auto print(Stream& os, T first, Rest... Rest) -> void;
+auto print(Stream& os, T first, Rest... rest) -> void;
 
 template <typename Stream, typename T>
 auto print(Stream& os, T last) -> void {
