@@ -6,9 +6,10 @@ namespace fields {
 
 template <typename... Ts>
 class Vector {
- public:
+	static_assert(sizeof...(Ts) > 1);
+public:
 	template <typename... Args>
-	constexpr Vector(Args... args) : components_(args...) {
+	constexpr explicit Vector(Args... args) : components_(args...) {
 	}
 
 	constexpr auto components() const { return components_; }
@@ -69,7 +70,7 @@ template <typename... Args>
 Vector(Args...) -> Vector<Args...>;
 
 template <typename Stream, typename... Fs>
-auto& operator<<(Stream& os, Vector<Fs...> y) {
+auto operator<<(Stream& os, Vector<Fs...> y) -> std::enable_if_t<(sizeof...(Fs) > 1), Stream&> {
 	os << "(";
 	y.print(os);
 	os << ")";

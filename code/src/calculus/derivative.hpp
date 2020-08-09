@@ -4,11 +4,11 @@
 #include "functions/linear.hpp"
 #include "functions/power.hpp"
 
-#include "addition.hpp"
-
 #include "field.hpp"
 #include "vector.hpp"
 #include "field_vector.hpp"
+
+#include "operators/math_operators.hpp"
 
 namespace fields {
 
@@ -107,7 +107,7 @@ constexpr auto d_dx(Power<F, N> y) {
         return y;
     } else if constexpr (D == 1) {
         if constexpr (N == 2) {
-            return Constant<N>{}*y.f()*d_dx(y.f());
+            return Constant<2>{}*y.f()*d_dx(y.f());
         } else {
             return Constant<N>{}*Power<F, N - 1>{y}*d_dx(y.f());
         }
@@ -192,10 +192,10 @@ constexpr auto d_dt(Multiplication<Fs...> y) {
 
 // vectors
 template <Int D = 1, typename... Fs>
-constexpr auto d_dx(fields::Vector<Fs...> y) { return y.derivative([](auto f) { return d_dx<D>(f); }); }
+constexpr auto d_dx(Vector<Fs...> y) { return y.derivative([](auto f) { return d_dx<D>(f); }); }
 
 template <Int D = 1, typename... Fs>
-constexpr auto d_dt(fields::Vector<Fs...> y) { return y.derivative([](auto f) { return d_dt<D>(f); }); }
+constexpr auto d_dt(Vector<Fs...> y) { return y.derivative([](auto f) { return d_dt<D>(f); }); }
 
 template <Int N = 1, typename Hamiltonian, std::size_t D>
 constexpr auto d_dt(FieldVector<Hamiltonian, D> y) {

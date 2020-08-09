@@ -1,6 +1,4 @@
-#include "../multiplication.hpp"
-
-#include "../comparison.hpp"
+#include "../operators/math_operators.hpp"
 
 #include <gtest/gtest.h>
 
@@ -54,7 +52,7 @@ TEST_F(MultiplicationTest, Mutliplication_Is_Correct) {
     static_assert(a*b*2_c*c*3_c*d*4_c == 24_c*a*b*c*d);
 
     static_assert((b*a)*(c/a) == b*c);
-    // static_assert(b*a*c/a == b*c);       // currently fails as it deduces (b*a*c)/a and a is stuck in the middle
+    static_assert(b*a*c/a == b*c);       
     static_assert((a*b*c)*(d/a) == b*c*d);
     static_assert(a*b*c*d/a == b*c*d);
     static_assert((d/a)*(a*b*c) == d*b*c);
@@ -62,12 +60,47 @@ TEST_F(MultiplicationTest, Mutliplication_Is_Correct) {
     static_assert((a/b)*(b/c) == a/c);
     static_assert(a/b*b/c == a/c);
     static_assert((a/b)*(c/a) == c/b);
-    // static_assert(a/b*c/a == c/b);              // TODO     not sure why this doesn't work but +- equivalent does (line 88 in addition_test.cpp)
+    static_assert(a/b*c/a == c/b);
     // static_assert((a/b)*(c/d) == (a*c)/(b*d));
     // static_assert(a/b*c/d == a*c/(b*d));
     static_assert(a*(b/c) == a*b/c);
     static_assert((a/b)*c == a*c/b);
     static_assert(a/b*c == a*c/b);
+}
+
+TEST_F(MultiplicationTest, Contains_Multiple_Is_Correct) {
+
+	using fields::detail::contains_multiple;
+
+    static_assert(util::contains<A, Multiplication<A, B, C>>::index == 0);
+    static_assert(util::contains<A, Multiplication<B, A, C>>::index == 1);
+    static_assert(util::contains<A, Multiplication<B, C, A>>::index == 2);
+
+	constexpr auto a = A{};
+	constexpr auto b = B{};
+	constexpr auto c = C{};
+
+	static_assert(util::contains<std::decay_t<decltype(a)>, std::decay_t<decltype(b*a*c)>>::index == 1);
+
+	static_assert(contains_multiple<A, Addition<A, B, C>>::index == 0);
+	static_assert(contains_multiple<A, Addition<B, A, C>>::index == 1);
+	static_assert(contains_multiple<A, Addition<B, C, A>>::index == 2);
+	static_assert(contains_multiple<A, Addition<B, C, D>>::index == -1);
+
+	using fields::detail::is_multiple;
+
+	static_assert(is_multiple<A, Multiplication<D, A>>::value);
+
+	static_assert(contains_multiple<A, Addition<Multiplication<D, A>, B, C>>::index == 0);
+	static_assert(contains_multiple<A, Addition<B, Multiplication<D, A>, C>>::index == 1);
+	static_assert(contains_multiple<A, Addition<B, C, Multiplication<D, A>>>::index == 2);
+	static_assert(contains_multiple<A, Addition<Multiplication<D, B>, B, C>>::index == -1);
+
+	static_assert(contains_multiple<A, Addition<Multiplication<A, B, C, D>, B, C>>::index == 0);
+	static_assert(contains_multiple<A, Addition<Multiplication<D, A, B, C>, B, C>>::index == 0);
+	static_assert(contains_multiple<A, Addition<B, Multiplication<D, B, A, C>, C>>::index == 1);
+	static_assert(contains_multiple<A, Addition<B, C, Multiplication<B, C, D, A>>>::index == 2);
+	static_assert(contains_multiple<A, Addition<Multiplication<D, B, C>, B, C>>::index == -1);
 }
 
 }   // test

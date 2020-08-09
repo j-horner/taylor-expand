@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.7 FATAL_ERROR)
 set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
+set (CMAKE_CXX_STANDARD 17)
+
 project("Fields")
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)

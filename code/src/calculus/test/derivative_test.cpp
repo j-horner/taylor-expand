@@ -3,10 +3,7 @@
 #include "../comparison.hpp"
 #include "../functions/linear.hpp"
 
-#include "../addition.hpp"
-#include "../subtraction.hpp"
-#include "../multiplication.hpp"
-#include "../division.hpp"
+#include "../operators/math_operators.hpp"
 
 #include <gtest/gtest.h>
 
@@ -45,6 +42,26 @@ protected:
     constexpr static auto b = B{};
     constexpr static auto c = C{};
     constexpr static auto d = D{};
+
+    template <typename T, typename U>
+    struct identify_terms;
+
+    template <typename... Fs, typename... Gs>
+    struct identify_terms<Multiplication<Fs...>, Multiplication<Gs...>> {
+        using type = std::integer_sequence<Int, util::contains<Fs, Multiplication<Gs...>>::index...>;
+    };
+
+    template <typename... Fs, typename... Gs, typename... Hs,
+        typename found_multiple_locations = std::integer_sequence<Int, fields::detail::contains_sub_multiple<Hs, Multiplication<Addition<Fs...>, Gs...>>::index...>,
+        typename enabled = std::enable_if_t<fields::detail::any_found_terms_in_rhs<found_multiple_locations>::value>>
+    constexpr auto add_function(Addition<Hs...> lhs, Multiplication<Addition<Fs...>, Gs...> rhs) {
+
+        static_assert(sizeof...(Fs) > 1);
+        static_assert(sizeof...(Gs) > 0);
+        static_assert(sizeof...(Hs) > 1);
+
+        return rhs + lhs;
+    }
 };
 
 TEST_F(DerivativeTest, Derivative_Of_Sums_Is_Correct) {
@@ -69,8 +86,8 @@ TEST_F(DerivativeTest, Derivative_Of_Products_Is_Correct) {
 	constexpr auto dd_dx = d_dx(d);
 
     static_assert(d_dx(a*b) == da_dx*b + a*db_dx);
-    static_assert(d_dx(a*b*c) == da_dx*b*c + a*db_dx*c + a*b*dc_dx);
-    static_assert(d_dx(a*b*c*d) == da_dx*b*c*d + a*db_dx*c*d + a*b*dc_dx*d + a*b*c*dd_dx);
+    static_assert(d_dx(a*b*c) == da_dx*b*c + db_dx*a*c + dc_dx*a*b);
+    static_assert(d_dx(a*b*c*d) == da_dx*b*c*d + db_dx*a*c*d + dc_dx*a*b*d + dd_dx*a*b*c);
 
     static_assert(d_dx(a/b) == da_dx*(b^-1_c) + (-a)*(b^-2_c)*db_dx);
 }
@@ -152,6 +169,71 @@ TEST_F(DerivativeTest, Derivative_Of_Vector_Is_Correct) {
 	static_assert(d_dx(d_dt(v)) == Vector{0_c, 0_c, 1_c, 0_c});
 	static_assert(d_dt<2>(v) == Vector{ 0_c, 0_c, 0_c, 2_c });
 
+}
+
+template <typename... Fs, typename... Gs>
+constexpr auto add_test(Multiplication<Fs...> lhs, Multiplication<Gs...> rhs) {
+
+    static_assert(sizeof...(Fs) > 0);
+    static_assert(sizeof...(Gs) > 0);
+
+    if constexpr (util::is_same<Multiplication<Fs...>, Multiplication<Gs...>>::value) {
+        return Constant<2>{}*lhs;
+    } else {
+
+        const auto same_mapping = fields::util::map_terms<util::is_same>(lhs, rhs);
+
+        const auto terms_successfully_found = std::get<2>(same_mapping);
+
+        if constexpr (terms_successfully_found) {
+            const auto mapped_terms = std::get<0>(same_mapping);
+            const auto mapped_locations = std::get<1>(same_mapping);
+
+            return fields::detail::group_terms(mapped_terms, mapped_locations, lhs, rhs);
+        } else {
+
+            const auto power_mapping = fields::util::map_terms<fields::detail::is_power>(lhs, rhs);
+
+            const auto powers_successfully_found = std::get<2>(power_mapping);
+
+            if constexpr (powers_successfully_found) {
+                const auto mapped_terms = std::get<0>(power_mapping);
+                const auto mapped_locations = std::get<1>(power_mapping);
+
+                return fields::detail::group_powers(mapped_terms, mapped_locations, lhs, rhs);
+            } else {
+
+                // multiply out brackets to try and find common factors
+                constexpr auto lhs_addition_location = util::tuple_find<std::tuple<Fs...>, fields::detail::is_addition>::value;
+                constexpr auto rhs_addition_location = util::tuple_find<std::tuple<Gs...>, fields::detail::is_addition>::value;
+
+                if constexpr ((-1 != lhs_addition_location) && (-1 != rhs_addition_location)) {
+
+                    const auto expanded_lhs = fields::detail::expand_terms<lhs_addition_location>(lhs);
+                    const auto expanded_rhs = fields::detail::expand_terms<rhs_addition_location>(rhs);
+
+                    const auto exact_map_result = fields::util::map_terms<util::is_same>(expanded_lhs, expanded_rhs);
+                    const auto exact_common_terms_exist = std::get<2>(exact_map_result);
+
+                    if constexpr (exact_common_terms_exist) {
+                        return expanded_lhs + expanded_rhs;
+                    } else {
+
+                        const auto multiple_map_result = fields::util::map_terms<fields::detail::is_multiple>(expanded_lhs, expanded_rhs);
+                        const auto multiple_common_terms_exist = std::get<2>(multiple_map_result);
+
+                        if constexpr (multiple_common_terms_exist) {
+                            return expanded_lhs + expanded_rhs;
+                        } else {
+                            return Addition<Multiplication<Fs...>, Multiplication<Gs...>>(lhs, rhs);
+                        }
+                    }
+                } else {
+                    return Addition<Multiplication<Fs...>, Multiplication<Gs...>>(lhs, rhs);
+                }
+            }
+        }
+    }
 }
 
 TEST_F(DerivativeTest, Time_Derivative_Of_Fields_Is_Correct) {
@@ -251,9 +333,118 @@ TEST_F(DerivativeTest, Time_Derivative_Of_Fields_Is_Correct) {
 
         static_assert(d_dt(y) == g*y);
 
-        static_assert(d_dt<2>(y) == 2_c*t*y + (g^2_c)*y);
-        static_assert(d_dt<3>(y) == 2_c*y + 6_c*t*g*y + (g^3_c)*y);
-        static_assert(d_dt<4>(y) == (g^4_c)*y + 8_c*g*y + 12_c*(g^2_c)*t*y + 12_c*t*t*y);
+        using G = std::decay_t<decltype(g)>;
+        using Y = std::decay_t<decltype(y)>;
+        {
+            constexpr auto lhs = 2_c*t*y;
+            constexpr auto rhs = g*y*g;
+        
+            static_assert(rhs == (g^2_c)*y);
+            static_assert(rhs == y*(g^2_c));
+            static_assert(rhs == g*g*y);
+            static_assert(rhs == y*g*g);
+
+            static_assert(std::is_same_v<std::decay_t<decltype(lhs)>, Multiplication<Constant<2>, Y, T>>);
+            static_assert(std::is_same_v<std::decay_t<decltype(rhs)>, Multiplication<Power<G, 2>, Y>>);
+
+            constexpr auto mapped_terms = util::map_terms<fields::util::is_same>(lhs, rhs);
+            
+            constexpr auto found_terms = std::get<0>(mapped_terms);
+            constexpr auto term_locations = std::get<1>(mapped_terms);
+            constexpr auto have_terms_been_found = std::get<2>(mapped_terms);
+
+            static_assert(have_terms_been_found);
+            static_assert(std::is_same_v<std::decay_t<decltype(found_terms)>, std::integer_sequence<Int, 1>>);
+            static_assert(std::is_same_v<std::decay_t<decltype(term_locations)>, std::integer_sequence<Int, 1>>);
+            
+
+            static_assert(util::is_same<std::decay_t<decltype(lhs + rhs)>, Multiplication<Y, Addition<Multiplication<Constant<2>, T>, Power<G, 2>>>>::value);
+            static_assert(util::is_same<std::decay_t<decltype(d_dt<2>(y))>, Multiplication<Y, Addition<Multiplication<Constant<2>, T>, Power<G, 2>>>>::value);
+        }
+
+        static_assert(d_dt<2>(y) == (2_c*t + (g^2_c))*y);
+ 
+        {
+            constexpr auto f = (2_c*t + (g^2_c));
+
+            constexpr auto df_dt = d_dt(f);
+
+            static_assert(df_dt == 2_c + 4_c*g*t);
+
+            static_assert(d_dt(f*y) == df_dt*y + g*y*f);
+            static_assert(d_dt(f*y) == (2_c + 4_c*g*t)*y + g*y*f);
+            static_assert(d_dt(f*y) == (2_c + 4_c*g*t)*y + g*y*(2_c*t + (g^2_c)));
+            static_assert(d_dt(f*y) == y*((2_c + 4_c*g*t) + g*(2_c*t + (g^2_c))));
+
+            static_assert(d_dt(f*y) == y*(2_c + 4_c*g*t + g*(2_c*t + (g^2_c))));
+
+            constexpr auto result = fields::detail::factorise(2_c + 4_c*g*t, g*(2_c*t + (g^2_c)));
+
+            constexpr auto addition = 2_c + 4_c*g*t;
+            constexpr auto multiplication = g*(2_c*t + (g^2_c));
+
+            static_assert(fields::detail::search_for_term(addition, multiplication).index >= 0);
+
+            static_assert(result == 2_c + g*(6_c*t + (g^2_c)));
+
+            static_assert(d_dt(f*y) == y*result);
+
+            static_assert(4_c*g*t + g*2_c*t + (g^3_c) == 6_c*g*t + (g^3_c));
+            static_assert(4_c*g*t + g*(2_c*t + (g^2_c)) == g*(6_c*t + (g^2_c)));
+
+            static_assert(2_c + 4_c*g*t + g*2_c*t + (g^3_c) == 2_c + 6_c*g*t + (g^3_c));
+            static_assert(2_c + 4_c*g*t + g*(2_c*t + (g^2_c)) == 2_c + g*(6_c*t + (g^2_c)));
+        }
+
+        static_assert(d_dt<3>(y) == (2_c + 4_c*t*g + g*(2_c*t + (g^2_c)))*y);
+        static_assert(d_dt<3>(y) == (2_c + g*(6_c*t + (g^2_c)))*y);
+
+        {
+            constexpr auto f = (2_c + g*(6_c*t + (g^2_c)));
+
+            constexpr auto df_dt = d_dt(f);
+
+            static_assert(d_dt(f) == d_dt(2_c + g*(6_c*t + (g^2_c))));
+            static_assert(d_dt(f) == d_dt(g*(6_c*t + (g^2_c))));
+            
+            // static_assert(d_dt(f) == 6_c*(g + t*g*g) + 12_c*t*t);
+
+            static_assert(g + g*g == g*(1_c + g));
+
+            {
+                constexpr auto rhs = t*g*g;
+                using Rhs = std::decay_t<decltype(rhs)>;
+                static_assert(-1 == util::contains<Rhs, G>::index);
+                static_assert(-1 == fields::detail::contains_subtraction<Rhs, G>::index);
+                static_assert(-1 == fields::detail::contains_multiple<Rhs, G>::index);
+                static_assert(fields::detail::is_multiplication<Rhs>::value);
+                static_assert(-1 == util::contains<G, Rhs>::index);
+                
+                constexpr auto power_location = util::tuple_index<Rhs, G, fields::detail::is_power>::value;
+                
+                static_assert(1 == power_location);
+
+                constexpr auto remaining_terms = rhs.filter<power_location>();
+
+                static_assert(std::is_same_v<std::decay_t<decltype(remaining_terms)>, fields::T>);
+
+                static_assert(remaining_terms == t);
+            }
+
+
+            static_assert(g + t*g*g == g*(1_c + t*g));
+            // static_assert(df_dt == 6_c*g*(1_c + t*g) + 12_c*t*t);
+
+            static_assert(d_dt<4>(y) == d_dt(f*y));
+            static_assert(d_dt<4>(y) == df_dt*y + f*d_dt(y));
+            static_assert(d_dt<4>(y) == df_dt*y + f*g*y);
+            static_assert(d_dt<4>(y) == (df_dt + f*g)*y);
+            static_assert(d_dt<4>(y) == (df_dt + g*f)*y);
+        }
+
+        // TODO
+        // static_assert(d_dt<4>(y) == ((g^4_c) + 8_c*g + 12_c*(g^2_c)*t + 12_c*t*t)*y);
+
     }
     {
 		using fields::d_dx;

@@ -16,7 +16,7 @@ struct FieldVectorComponent;
 template <typename Hamiltonian, std::size_t Dim>
 class FieldVector {
 public:	
-	constexpr FieldVector(Hamiltonian H_) : H(H_) {
+	constexpr explicit FieldVector(Hamiltonian H_) : H(H_) {
 	}
 
 	template <typename... Ys, typename X_, typename T_>

@@ -1,6 +1,4 @@
-#include "../division.hpp"
-
-#include "../comparison.hpp"
+#include "../operators/math_operators.hpp"
 
 #include <gtest/gtest.h>
 

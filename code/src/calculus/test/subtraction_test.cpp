@@ -1,8 +1,4 @@
-#include "../subtraction.hpp"
-
-#include "../comparison.hpp"
-
-#include "../functions/constant.hpp"
+#include "../operators/math_operators.hpp"
 
 #include <gtest/gtest.h>
 

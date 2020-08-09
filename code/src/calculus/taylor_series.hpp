@@ -1,6 +1,12 @@
 #pragma once
 
 #include "functions/constant.hpp"
+#include "functions/power.hpp"
+#include "functions/linear.hpp"
+
+#include "operators/math_operators.hpp"
+
+#include "derivative.hpp"
 
 #include "../util/util.hpp"
 
@@ -74,7 +80,7 @@ constexpr auto make_phi_vector(Hamiltonian H) {
 
 template <typename Hamiltonian, typename... Phis, typename T_0, Int... Ns>
 constexpr auto taylor_series(Hamiltonian H, Vector<Phis...> phi_0, T_0 t_0, std::integer_sequence<Int, Ns...>) {
-	static_assert(sizeof...(Ns) > 0);
+	static_assert(sizeof...(Ns) > 1);
 	static_assert(sizeof...(Phis) > 1);
 
 	
@@ -87,7 +93,7 @@ constexpr auto taylor_series(Hamiltonian H, Vector<Phis...> phi_0, T_0 t_0, std:
 
 template <typename Hamiltonian, typename Phi_0, typename T_0, Int... Ns>
 constexpr auto taylor_series(Hamiltonian H, Phi_0 phi_0, T_0 t_0, std::integer_sequence<Int, Ns...>) {
-    static_assert(sizeof...(Ns) > 0);
+    static_assert(sizeof...(Ns) > 1);
 
 	auto phi = Field{ H };
 
@@ -101,14 +107,24 @@ template <Int N, typename Hamiltonian, typename Y_0>
 constexpr auto taylor_expand(Hamiltonian H, Y_0 y_0) {
     static_assert(N >= 0, "The 'Order' of the Taylor Series solution must be greater than or equal to zero.");
 
-	return fields::detail::taylor_series(H, y_0, Constant<0>{}, std::make_integer_sequence<Int, N + 1>{});
+	if constexpr (0 == N) {
+		return y_0;
+	}
+	else {
+		return fields::detail::taylor_series(H, y_0, Constant<0>{}, std::make_integer_sequence<Int, N + 1>{});
+	}
 }
 
 template <Int N, typename Hamiltonian, typename Y_0, Int A, Int B>
 constexpr auto taylor_expand(Hamiltonian H, Y_0 y_0, Constant<A, B> t_0) {
     static_assert(N >= 0, "The 'Order' of the Taylor Series solution must be greater than or equal to zero.");
 
-    return fields::detail::taylor_series(H, y_0, t_0, std::make_integer_sequence<Int, N + 1>{});
+	if constexpr (0 == N) {
+		return y_0;
+	}
+	else {
+		return fields::detail::taylor_series(H, y_0, t_0, std::make_integer_sequence<Int, N + 1>{});
+	}
 }
 
 }   // fields
