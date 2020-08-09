@@ -31,9 +31,9 @@ function(add_gtest_test target)
     
 	target_compile_options(${target} PRIVATE
                            $<$<CXX_COMPILER_ID:Clang>:
-                                -Xclang -std=c++17 -ferror-limit=50>
+                                -Xclang -ferror-limit=50>
                            $<$<CXX_COMPILER_ID:MSVC>:
-                                /W3 /WX /EHsc /std:c++latest /bigobj>)
+                                /W3 /WX /EHsc /bigobj>)
 
 
 
