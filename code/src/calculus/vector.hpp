@@ -6,10 +6,10 @@ namespace fields {
 
 template <typename... Ts>
 class Vector {
- public:
+	static_assert(sizeof...(Ts) > 1);
+public:
 	template <typename... Args>
-	constexpr Vector(Args... args) : components_(args...) {
-	}
+	constexpr explicit Vector(Args... args) : components_(args...) {}
 
 	constexpr auto components() const { return components_; }
 
@@ -31,45 +31,45 @@ class Vector {
 	template <typename Stream>
 	auto print(Stream& os) const -> void { print_impl(os, component_indicies_{}); }
 
- private:
-	 template <std::size_t... Is, typename Tuple>
-	 constexpr auto function_call_impl(std::index_sequence<Is...>, Tuple args) const { return Vector<decltype((std::apply(get<Is>(), args))) ...>{ (std::apply(get<Is>(), args)) ... }; }
-	 
-	 template <typename D, std::size_t... Is>
-	 constexpr auto derivative_impl(D d, std::index_sequence<Is...>) const { return Vector<decltype(d(get<Is>()))...>{ d(get<Is>()) ... }; }
-	 
-	 template <typename F, std::size_t... Is>
-	 constexpr auto multiply_scalar_impl(F f, std::index_sequence<Is...>) const { return Vector<decltype((f * get<Is>()))...>{(f* get<Is>()) ... }; }
+private:
+	template <std::size_t... Is, typename Tuple>
+	constexpr auto function_call_impl(std::index_sequence<Is...>, Tuple args) const { return Vector<decltype((std::apply(get<Is>(), args))) ...>{ (std::apply(get<Is>(), args)) ... }; }
 
-	 template <typename... Us, std::size_t... Is>
-	 constexpr auto addition_impl(Vector<Us...> u, std::index_sequence<Is...>) const { return Vector<decltype(get<Is>() + u.template get<Is>())...>{(get<Is>() + u.template get<Is>())...}; }
+	template <typename D, std::size_t... Is>
+	constexpr auto derivative_impl(D d, std::index_sequence<Is...>) const { return Vector<decltype(d(get<Is>()))...>{ d(get<Is>()) ... }; }
 
-	 template <typename Stream, typename T>
-	 auto print(Stream& os, T last) const -> void {
-		 os << last;
-	 }
-	 
-	 template <typename Stream, typename T, typename... Rest>
-	 auto print(Stream& os, T first, Rest... rest) const -> void {
-		 os << first << " , ";
-		 print(os, rest...);
-	 }
+	template <typename F, std::size_t... Is>
+	constexpr auto multiply_scalar_impl(F f, std::index_sequence<Is...>) const { return Vector<decltype((f* get<Is>()))...>{(f* get<Is>()) ... }; }
 
-	 template <typename Stream, std::size_t... Is>
-	 constexpr auto print_impl(Stream& os, std::index_sequence<Is...>) const -> void {
-		 print(os, get<Is>()...);
-	 }
+	template <typename... Us, std::size_t... Is>
+	constexpr auto addition_impl(Vector<Us...> u, std::index_sequence<Is...>) const { return Vector<decltype(get<Is>() + u.template get<Is>())...>{(get<Is>() + u.template get<Is>())...}; }
 
-	 std::tuple<Ts...> components_;
+	template <typename Stream, typename T>
+	auto print(Stream& os, T last) const -> void {
+		os << last;
+	}
 
-	 using component_indicies_ = std::make_index_sequence<sizeof...(Ts)>;
+	template <typename Stream, typename T, typename... Rest>
+	auto print(Stream& os, T first, Rest... rest) const -> void {
+		os << first << " , ";
+		print(os, rest...);
+	}
+
+	template <typename Stream, std::size_t... Is>
+	constexpr auto print_impl(Stream& os, std::index_sequence<Is...>) const -> void {
+		print(os, get<Is>()...);
+	}
+
+	std::tuple<Ts...> components_;
+
+	using component_indicies_ = std::make_index_sequence<sizeof...(Ts)>;
 };
 
 template <typename... Args>
-Vector(Args...) -> Vector<Args...>;
+Vector(Args...)->Vector<Args...>;
 
 template <typename Stream, typename... Fs>
-auto& operator<<(Stream& os, Vector<Fs...> y) {
+auto operator<<(Stream& os, Vector<Fs...> y)->std::enable_if_t<(sizeof...(Fs) > 1), Stream&> {
 	os << "(";
 	y.print(os);
 	os << ")";

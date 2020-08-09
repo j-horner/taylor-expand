@@ -31,7 +31,7 @@ function(add_gtest_test target)
     
 	target_compile_options(${target} PRIVATE
                            $<$<CXX_COMPILER_ID:Clang>:
-                                -Xclang -ferror-limit=50>
+                                >
                            $<$<CXX_COMPILER_ID:MSVC>:
                                 /W3 /WX /EHsc /bigobj>)
 
